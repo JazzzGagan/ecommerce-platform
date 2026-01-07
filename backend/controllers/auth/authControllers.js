@@ -1,8 +1,9 @@
-const User = require("../../models/userModels");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { JWT_SECRET_KEY } = require("../../config/constants");
+import User from "../../models/userModels.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import JWT_SECRET_KEY from "../../config/constants.js";
 
+//console.log(jwt);
 const register = async (req, res) => {
   try {
     if (!req.body) {
@@ -13,7 +14,7 @@ const register = async (req, res) => {
 
     const { email, password, image, ...remaining } = req.body;
 
-    //check if user already exist
+    // check if user already exists
     const user = await User.findOne({ email });
 
     if (user) {
@@ -22,17 +23,18 @@ const register = async (req, res) => {
       });
     }
 
-    //Hash Password
+    // Hash password
     const salt = bcrypt.genSaltSync(10);
     const hashPassword = bcrypt.hashSync(password, salt);
 
-    //Create user
+    // Create user
     await User.create({
       ...remaining,
       email,
       password: hashPassword,
       image: req?.file?.filename || image || "",
     });
+
     res.status(201).json({
       message: "User Successfully sign-up",
     });
@@ -46,7 +48,7 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    //fine user by email
+    // find user by email
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -55,14 +57,14 @@ const login = async (req, res) => {
       });
     }
 
-    //check password
+    // check password
     const isValidPassword = bcrypt.compareSync(password, user.password);
 
     if (!isValidPassword) {
       return res.status(400).json({ message: "Invalid Credentials!" });
     }
 
-    //Create JWT token
+    // Create JWT token
     const token = jwt.sign(
       {
         _id: user._id,
@@ -74,11 +76,11 @@ const login = async (req, res) => {
       { expiresIn: "20d" }
     );
 
-    //set cookie expiration
+    // set cookie expiration
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 10);
 
-    //set HTTP-only cookie
+    // set HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: true,
       expires: expiresAt,
@@ -109,4 +111,4 @@ const logOut = async (req, res) => {
   });
 };
 
-module.exports = { register, login, logOut };
+export { register, login, logOut };

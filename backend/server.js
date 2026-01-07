@@ -1,13 +1,14 @@
-const express = require("express");
-const connectDB = require("./config/db");
-require("dotenv").config();
+import express from "express";
+import connectDB from "./config/db.js";
+import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
 
-//routes
-const authRoutes = require("./routes/authRoutes");
+dotenv.config();
 
 connectDB();
 
 const app = express();
+
 app.use(express.json());
 app.use("/userImage", express.static("userImage"));
 

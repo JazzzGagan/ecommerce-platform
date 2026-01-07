@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const { JWT_SECRET_KEY } = require("../config/constants");
+import jwt from "jsonwebtoken";
+import { JWT_SECRET_KEY } from "../config/constants.js";
 
 const getTokenFromRequest = (req) => {
   // Check cookie first
@@ -53,7 +53,4 @@ const checkAuthAdmin = (req, res, next) => {
   }
 };
 
-module.exports = {
-  checkAuth,
-  checkAuthAdmin,
-};
+export { checkAuth, checkAuthAdmin };
