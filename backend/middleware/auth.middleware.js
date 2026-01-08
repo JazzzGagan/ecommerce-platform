@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { JWT_SECRET_KEY } from "../config/constants.js";
+import JWT_SECRET_KEY from "../config/constants.js";
 
 const getTokenFromRequest = (req) => {
   // Check cookie first

@@ -1,7 +1,8 @@
 import express from "express";
 import connectDB from "./config/db.js";
 import dotenv from "dotenv";
-import authRoutes from "./routes/authRoutes.js";
+import authRoutes from "./routes/auth.routes.js";
+import productRoutes from "./routes/product.routes.js";
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use("/userImage", express.static("userImage"));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Running");

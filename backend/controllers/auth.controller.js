@@ -1,7 +1,7 @@
-import User from "../../models/user.model.js";
+import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import JWT_SECRET_KEY from "../../config/constants.js";
+import JWT_SECRET_KEY from "../config/constants.js";
 
 //console.log(jwt);
 const register = async (req, res) => {
