@@ -12,14 +12,14 @@ export default function DashboardUsers() {
   const [search, setSearch] = useState("");
   const debounceSearch = useDebounce(search, 1000);
 
-  // const handleChangePage = (newPage) => {
-  //   setPage(newPage + 1);
-  // };
+  const handleChangePage = (newPage) => {
+    setPage(newPage + 1);
+  };
 
-  // const handleChangeRowsPerPage = (e) => {
-  //   setRowsPerPage(parseInt(e.target.value, 10));
-  //   setPage(1);
-  // };
+  const handleChangeRowsPerPage = (e) => {
+    setRowsPerPage(parseInt(e.target.value, 10));
+    setPage(1);
+  };
 
   // Fetch users from API with query params
   const { data, isLoading, refetch } = useQuery({
