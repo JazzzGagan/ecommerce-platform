@@ -37,7 +37,7 @@ export const createProduct = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+}; 
 
 // Get all products
 export const getProducts = async (req, res) => {
