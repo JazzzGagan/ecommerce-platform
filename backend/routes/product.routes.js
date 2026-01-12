@@ -17,7 +17,7 @@ router.get("/:id", getProductById);
 
 // Admin
 router.post("/", productImageUpload, createProduct);
-router.patch("/:id", updateProduct);
+router.patch("/:id", productImageUpload, updateProduct);
 router.delete("/:id", deleteProduct);
 
 export default router;
