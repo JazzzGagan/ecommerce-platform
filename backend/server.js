@@ -14,12 +14,8 @@ app.use(express.json());
 app.use("/userImage", express.static("userImage"));
 
 app.use("/api/auth", authRoutes);
-app.use("/api/admin/categories", categoryRoutes);
-app.use("/api/admin/products", productRoutes);
-
-app.get("/", (req, res) => {
-  res.send("API Running");
-});
+app.use("/api/categories", categoryRoutes);
+app.use("/api/products", productRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -9,23 +9,51 @@ const ProductForm = ({ fetchProducts }) => {
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState(0);
   const [description, setDescription] = useState("");
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     API.get("/categories").then((res) => setCategories(res.data));
   }, []);
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setImages(files);
+
+    // Generate previews
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  const removeImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    setImages(newImages);
+    setImagePreviews(newPreviews);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await API.post("/products", {
-      name,
-      slug,
-      category,
-      brand,
-      price,
-      quantity,
-      description,
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("slug", slug);
+    formData.append("category", category);
+    formData.append("brand", brand);
+    formData.append("price", price);
+    formData.append("quantity", quantity);
+    formData.append("description", description);
+
+    // Append images
+    images.forEach((image) => {
+      formData.append("images", image);
     });
+
+    await API.post("/products", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
     setName("");
     setSlug("");
     setCategory("");
@@ -33,6 +61,8 @@ const ProductForm = ({ fetchProducts }) => {
     setPrice("");
     setQuantity(0);
     setDescription("");
+    setImages([]);
+    setImagePreviews([]);
     fetchProducts();
   };
 
@@ -155,6 +185,46 @@ const ProductForm = ({ fetchProducts }) => {
             rows="4"
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           ></textarea>
+        </div>
+
+        <div>
+          <label className="block mb-2.5 text-sm font-semibold text-gray-800">
+            Product Images
+          </label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer"
+          />
+
+          {imagePreviews.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {images.length > 0 && (
+            <p className="mt-2 text-sm text-gray-600">
+              {images.length} image(s) selected
+            </p>
+          )}
         </div>
       </div>
 

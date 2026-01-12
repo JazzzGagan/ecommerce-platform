@@ -4,3 +4,14 @@ node_modules/
 userImage
 productImage
 /dist
+
+
+# Vite
+.vite/
+
+# Node
+node_modules/
+dist/
+
+# Env
+.env
