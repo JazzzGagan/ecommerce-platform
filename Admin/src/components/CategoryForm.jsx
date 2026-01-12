@@ -6,9 +6,12 @@ const CategoryForm = ({ fetchCategories }) => {
   const [slug, setSlug] = useState("");
   const [parent, setParent] = useState("");
   const [categories, setCategories] = useState([]);
+console.log(categories);
+  
 
   useEffect(() => {
     API.get("/categories").then((res) => setCategories(res.data));
+    
   }, []);
 
   const handleSubmit = async (e) => {

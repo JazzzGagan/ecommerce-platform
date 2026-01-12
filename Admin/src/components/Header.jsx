@@ -15,11 +15,7 @@ export default function Header({ onLogout }) {
 
         {/* Profile info */}
         <div className="flex items-center space-x-3 cursor-pointer">
-          <img
-            src=""
-            alt="Profile"
-            className="w-10 h-10 rounded-full"
-          />
+          <img src="" alt="Profile" className="w-10 h-10 rounded-full" />
           <span className="font-medium">Admin</span>
         </div>
 
