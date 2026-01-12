@@ -1,0 +1,83 @@
+.top-bar {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 0.625rem 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.top-bar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.help-text {
+  color: #999;
+}
+
+.help-phone {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.help-phone:hover {
+  color: #667eea;
+}
+
+.separator {
+  color: #666;
+  margin: 0 0.5rem;
+}
+
+.contact-link {
+  color: #999;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-link:hover {
+  color: #fff;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account-link,
+.sign-in-link {
+  color: #999;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.account-link:hover,
+.sign-in-link:hover {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .top-bar-container {
+    padding: 0 1rem;
+    font-size: 0.75rem;
+  }
+
+  .top-bar-left,
+  .top-bar-right {
+    gap: 0.5rem;
+  }
+}
+
