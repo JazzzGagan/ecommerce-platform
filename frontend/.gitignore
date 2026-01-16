@@ -21,4 +21,20 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.sw?git add ../backend/controllers/category.controller.js
+git add ../backend/server.js
+
+# Vite
+.vite/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Env
+.env
+
+# Images
+assets/

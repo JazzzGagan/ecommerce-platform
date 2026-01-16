@@ -1,10 +1,7 @@
-import HeroSlider from '../components/HeroSlider';
-import BrandLogos from '../components/BrandLogos';
-import FeaturedCategories from '../components/FeaturedCategories';
-import ProductSection from '../components/ProductSection';
 import ProductSlider from '../components/ProductSlider';
+import Footer from '../components/Footer';
 
-const Home = () => {
+const Accessories = () => {
   const accessoriesProducts = [
     {
       name: 'UGREEN HiTune T2 Bluetooth 5.0 Wireless Earbuds',
@@ -19,7 +16,7 @@ const Home = () => {
       name: 'Kingston A400 480GB 2.5 inch SATA 3 Internal SSD',
       price: 'रु 18,000',
       originalPrice: 'रु 22,000',
-      rating: 5,
+      rating: 4,
       reviews: 8,
       timer: '18d 17h 45m 49s',
       image: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=400&fit=crop&q=80&auto=format'
@@ -81,52 +78,39 @@ const Home = () => {
     {
       name: 'Logitech MX Master 3 Wireless Mouse',
       price: 'रु 8,500',
-      originalPrice: 'रु 10,000',
       rating: 5,
       reviews: 24,
-      timer: '18d 17h 45m 49s',
       image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=400&h=400&fit=crop&q=80&auto=format'
     },
     {
       name: 'Corsair K70 RGB Mechanical Keyboard',
       price: 'रु 12,000',
-      originalPrice: 'रु 15,000',
       rating: 5,
       reviews: 18,
-      timer: '18d 17h 45m 49s',
       image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=400&fit=crop&q=80&auto=format'
     },
     {
       name: 'Sony WH-1000XM4 Noise Cancelling Headphones',
       price: 'रु 25,000',
-      originalPrice: 'रु 30,000',
       rating: 5,
       reviews: 32,
-      timer: '18d 17h 45m 49s',
       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&q=80&auto=format'
     },
     {
       name: 'Samsung T7 Portable SSD 1TB',
       price: 'रु 15,000',
-      originalPrice: 'रु 18,000',
       rating: 5,
       reviews: 15,
-      timer: '18d 17h 45m 49s',
       image: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=400&fit=crop&q=80&auto=format'
     }
   ];
 
   return (
-    <>
-      <HeroSlider />
-      <BrandLogos />
-      <FeaturedCategories />
-      <ProductSlider 
-        products={accessoriesProducts}
-        title="Accessories"
-      />
-    </>
+    <div style={{ paddingTop: '120px', minHeight: '100vh' }}>
+      <ProductSlider products={accessoriesProducts} title="Accessories" />
+    </div>
   );
 };
 
-export default Home;
+export default Accessories;
+

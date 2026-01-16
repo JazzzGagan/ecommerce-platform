@@ -16,6 +16,7 @@ export const createCategory = async (req, res) => {
 export const getCategories = async (req, res) => {
   try {
     const categories = await Category.find().populate("parent");
+    console.log("test", categories);
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -25,7 +26,9 @@ export const getCategories = async (req, res) => {
 // Update category
 export const updateCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -41,4 +44,3 @@ export const deleteCategory = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
