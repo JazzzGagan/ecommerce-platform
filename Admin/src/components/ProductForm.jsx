@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import API from "../api/api";
 
-const ProductForm = ({ fetchProducts }) => {
+const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [category, setCategory] = useState("");
@@ -9,51 +9,47 @@ const ProductForm = ({ fetchProducts }) => {
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState(0);
   const [description, setDescription] = useState("");
-  const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
   const [categories, setCategories] = useState([]);
 
+  const [images, setImages] = useState([]); 
+  const [imagePreviews, setImagePreviews] = useState([]); 
+
+  const [existingImages, setExistingImages] = useState([]); 
+
+  // Fetch categories on mount
   useEffect(() => {
     API.get("/categories").then((res) => setCategories(res.data));
   }, []);
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setImages(files);
+  // Load editing product data
+  useEffect(() => {
+    if (editingProduct) {
+      setName(editingProduct.name);
+      setSlug(editingProduct.slug);
+      setCategory(editingProduct.category?._id || "");
+      setBrand(editingProduct.brand || "");
+      setPrice(editingProduct.price);
+      setQuantity(editingProduct.quantity);
+      setDescription(editingProduct.description || "");
 
-    // Generate previews
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setImagePreviews(previews);
-  };
+      setExistingImages(editingProduct.images || []);
 
-  const removeImage = (index) => {
-    const newImages = images.filter((_, i) => i !== index);
-    const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    setImages(newImages);
-    setImagePreviews(newPreviews);
-  };
+      setImages([]);
+      setImagePreviews([]);
+    } else {
+      
+      resetForm();
+    }
+  }, [editingProduct]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
 
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("slug", slug);
-    formData.append("category", category);
-    formData.append("brand", brand);
-    formData.append("price", price);
-    formData.append("quantity", quantity);
-    formData.append("description", description);
-
-    // Append images
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
-
-    await API.post("/products", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
+  const resetForm = () => {
     setName("");
     setSlug("");
     setCategory("");
@@ -63,7 +59,72 @@ const ProductForm = ({ fetchProducts }) => {
     setDescription("");
     setImages([]);
     setImagePreviews([]);
-    fetchProducts();
+    setExistingImages([]);
+  };
+
+  // Handle new image selection
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setImages(files);
+
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  // Remove new image 
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+  };
+
+  // Remove existing image 
+  const removeExistingImage = (index) => {
+    setExistingImages(existingImages.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("slug", slug);
+      formData.append("category", category);
+      formData.append("brand", brand);
+      formData.append("price", price);
+      formData.append("quantity", quantity);
+      formData.append("description", description);
+
+      images.forEach((img) => {
+        formData.append("images", img);
+      });
+
+      existingImages.forEach((imgUrl) => {
+        formData.append("existingImages", imgUrl);
+      });
+
+      if (editingProduct) {
+       
+        //console.log("Edit API called for product ID:", editingProduct._id);
+
+        await API.patch(`/products/${editingProduct._id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        setEditingProduct(null);
+      } else {
+        console.log("Create API called for new product");
+
+        await API.post("/products", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
+      resetForm();
+      fetchProducts();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Failed to submit product. Please try again.");
+    }
   };
 
   return (
@@ -73,7 +134,7 @@ const ProductForm = ({ fetchProducts }) => {
     >
       <div className="mb-8">
         <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
-          Add Product
+          {editingProduct ? "Edit Product" : "Add Product"}
         </h3>
         <p className="text-gray-500 text-sm mt-2 font-regular">
           Create a new product for your store
@@ -81,6 +142,7 @@ const ProductForm = ({ fetchProducts }) => {
       </div>
 
       <div className="space-y-6">
+        {/* Product Name & Slug */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="block mb-2.5 text-sm font-semibold text-gray-800">
@@ -95,7 +157,6 @@ const ProductForm = ({ fetchProducts }) => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-
           <div>
             <label className="block mb-2.5 text-sm font-semibold text-gray-800">
               Slug
@@ -111,6 +172,7 @@ const ProductForm = ({ fetchProducts }) => {
           </div>
         </div>
 
+        {/* Category & Brand */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="block mb-2.5 text-sm font-semibold text-gray-800">
@@ -130,7 +192,6 @@ const ProductForm = ({ fetchProducts }) => {
               ))}
             </select>
           </div>
-
           <div>
             <label className="block mb-2.5 text-sm font-semibold text-gray-800">
               Brand
@@ -145,6 +206,7 @@ const ProductForm = ({ fetchProducts }) => {
           </div>
         </div>
 
+        {/* Price & Quantity */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="block mb-2.5 text-sm font-semibold text-gray-800">
@@ -159,7 +221,6 @@ const ProductForm = ({ fetchProducts }) => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-
           <div>
             <label className="block mb-2.5 text-sm font-semibold text-gray-800">
               Quantity
@@ -168,12 +229,13 @@ const ProductForm = ({ fetchProducts }) => {
               type="number"
               placeholder="0"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={(e) => setQuantity(Number(e.target.value))}
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
 
+        {/* Description */}
         <div>
           <label className="block mb-2.5 text-sm font-semibold text-gray-800">
             Description
@@ -187,6 +249,7 @@ const ProductForm = ({ fetchProducts }) => {
           ></textarea>
         </div>
 
+        {/* Image Upload */}
         <div>
           <label className="block mb-2.5 text-sm font-semibold text-gray-800">
             Product Images
@@ -196,43 +259,60 @@ const ProductForm = ({ fetchProducts }) => {
             multiple
             accept="image/*"
             onChange={handleImageChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer"
+            className="block w-full text-sm text-gray-900 bg-gray-50 rounded border border-gray-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-
-          {imagePreviews.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {imagePreviews.map((preview, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={preview}
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {images.length > 0 && (
-            <p className="mt-2 text-sm text-gray-600">
-              {images.length} image(s) selected
-            </p>
-          )}
         </div>
+
+        {/* Existing Image Previews with remove */}
+        {existingImages.length > 0 && (
+          <div className="flex flex-wrap gap-3 mt-4">
+            {existingImages.map((imgUrl, idx) => (
+              <div key={`existing-${idx}`} className="relative">
+                <img
+                  src={imgUrl}
+                  alt={`Existing Preview ${idx + 1}`}
+                  className="w-20 h-20 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeExistingImage(idx)}
+                  className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* New Image Previews with remove */}
+        {imagePreviews.length > 0 && (
+          <div className="flex flex-wrap gap-3 mt-4">
+            {imagePreviews.map((img, idx) => (
+              <div key={`new-${idx}`} className="relative">
+                <img
+                  src={img}
+                  alt={`New Preview ${idx + 1}`}
+                  className="w-20 h-20 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(idx)}
+                  className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <button
         type="submit"
         className="mt-8 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3.5 rounded-lg text-base transition-all duration-200 shadow-sm hover:shadow-md"
       >
-        Add Product
+        {editingProduct ? "Update Product" : "Add Product"}
       </button>
     </form>
   );
