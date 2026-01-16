@@ -7,9 +7,9 @@
 }
 
 .top-bar-container {
-  max-width: 1400px;
+  max-width: 90%;
   margin: 0 auto;
-  padding: 0 2rem;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -80,4 +80,3 @@
     gap: 0.5rem;
   }
 }
-

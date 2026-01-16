@@ -1,22 +1,23 @@
-import './App.css'
-import TopBar from './components/TopBar'
-import Header from './components/Header'
-import Home from './pages/Home'
-import Accessories from './pages/Accessories'
-import Footer from './components/Footer'
+import Test from "./pages/Test.jsx";
+import { Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout/Layout.jsx";
+import Home from "./pages/Home.jsx";
+import Login from "./pages/Login.jsx";
+import Signup from "./pages/Signup.jsx";
 
 function App() {
-  // Simple routing without react-router-dom
-  const currentPath = window.location.pathname;
-  
   return (
     <>
-      <TopBar />
-      <Header />
-      {currentPath === '/accessories' ? <Accessories /> : <Home />}
-      <Footer />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="test" element={<Test />} />
+        </Route>
+      </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
