@@ -5,8 +5,7 @@ import API from "../api/api";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  console.log("products", products);
-  
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const fetchProducts = async () => {
     const res = await API.get("/products");
@@ -30,9 +29,13 @@ const Products = () => {
           </p>
         </div>
 
-        {/* Product Form Section */}
+        {/* Product Form */}
         <div className="mb-12">
-          <ProductForm fetchProducts={fetchProducts} />
+          <ProductForm
+            fetchProducts={fetchProducts}
+            editingProduct={editingProduct}
+            setEditingProduct={setEditingProduct}
+          />
         </div>
 
         {/* Divider */}
@@ -47,13 +50,16 @@ const Products = () => {
           </div>
         </div>
 
-        {/* Product List Section */}
-        <div>
-          <ProductList products={products} fetchProducts={fetchProducts} />
-        </div>
+        {/* Product List */}
+        <ProductList
+          products={products}
+          fetchProducts={fetchProducts}
+          onEdit={setEditingProduct}
+        />
       </div>
     </div>
   );
 };
 
 export default Products;
+

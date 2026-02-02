@@ -5,6 +5,7 @@ import API from "../api/api";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
+  const [editingCategory, setEditingCategory] = useState(null);
 
   const fetchCategories = async () => {
     const res = await API.get("/categories");
@@ -29,7 +30,11 @@ const Categories = () => {
 
         {/* Category Form Section */}
         <div className="mb-12">
-          <CategoryForm fetchCategories={fetchCategories} />
+          <CategoryForm
+            fetchCategories={fetchCategories}
+            editingCategory={editingCategory}
+            setEditingCategory={setEditingCategory}
+          />
         </div>
 
         {/* Divider */}
@@ -49,6 +54,7 @@ const Categories = () => {
           <CategoryList
             categories={categories}
             fetchCategories={fetchCategories}
+            onEdit={setEditingCategory}
           />
         </div>
       </div>

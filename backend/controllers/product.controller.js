@@ -1,4 +1,6 @@
 import Product from "../models/product.model.js";
+import fs from "fs";
+import path from "path";
 
 // Create product
 export const createProduct = async (req, res) => {
@@ -80,10 +82,47 @@ export const getProductById = async (req, res) => {
 // Update product
 export const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const {
+      name,
+      slug,
+      category,
+      price,
+      brand,
+      description,
+      quantity,
+      existingImages,
+    } = req.body;
+
+    let existingImgs = [];
+    if (existingImages) {
+      if (typeof existingImages === "string") {
+        existingImgs = JSON.parse(existingImages);
+      } else {
+        existingImgs = existingImages;
+      }
+    }
+
+    const newImages = req.files ? req.files.map((file) => file.path) : [];
+
+    const images = [...existingImgs, ...newImages];
+
+    const productData = {
+      name,
+      slug,
+      category,
+      price,
+      brand,
+      description,
+      quantity,
+      images,
+    };
+
+    // Update product
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      productData,
+      { new: true, runValidators: true }
+    );
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -98,18 +137,27 @@ export const updateProduct = async (req, res) => {
 // Delete product
 export const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { isActive: false },
-      { new: true }
-    );
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ message: "Product disabled", product });
+    if (product.images && product.images.length > 0) {
+      product.images.forEach((imgPath) => {
+        const fullPath = path.resolve(imgPath);
+
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      });
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Product and images deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Delete product error:", err);
+    res.status(500).json({ error: "Failed to delete product" });
   }
 };

@@ -1,26 +1,61 @@
 import React, { useState, useEffect } from "react";
 import API from "../api/api";
 
-const CategoryForm = ({ fetchCategories }) => {
+const CategoryForm = ({
+  fetchCategories,
+  editingCategory,
+  setEditingCategory,
+}) => {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [parent, setParent] = useState("");
   const [categories, setCategories] = useState([]);
-console.log(categories);
-  
 
+  // Load categories to select parent
   useEffect(() => {
     API.get("/categories").then((res) => setCategories(res.data));
-    
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await API.post("/categories", { name, slug, parent: parent || null });
+  // Load data when editingCategory changes
+  useEffect(() => {
+    if (editingCategory) {
+      setName(editingCategory.name || "");
+      setSlug(editingCategory.slug || "");
+      setParent(editingCategory.parent?._id || "");
+    } else {
+      resetForm();
+    }
+  }, [editingCategory]);
+
+  const resetForm = () => {
     setName("");
     setSlug("");
     setParent("");
-    fetchCategories();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const payload = {
+        name,
+        slug,
+        parent: parent || null, 
+      };
+
+      if (editingCategory) {
+        await API.patch(`/categories/${editingCategory._id}`, payload);
+        setEditingCategory(null);
+      } else {
+        await API.post("/categories", payload);
+      }
+
+      resetForm();
+      fetchCategories();
+    } catch (error) {
+      console.error("Failed to submit category:", error);
+      alert("Failed to submit category. Please try again.");
+    }
   };
 
   return (
@@ -30,14 +65,17 @@ console.log(categories);
     >
       <div className="mb-8">
         <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
-        Add Category
+          {editingCategory ? "Edit Category" : "Add Category"}
         </h3>
         <p className="text-gray-500 text-sm mt-2 font-regular">
-          Create a new product category for your store
+          {editingCategory
+            ? "Update product category details"
+            : "Create a new product category for your store"}
         </p>
       </div>
 
       <div className="space-y-6">
+        {/* Name & Slug */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="block mb-2.5 text-sm font-semibold text-gray-800">
@@ -49,7 +87,7 @@ console.log(categories);
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -63,11 +101,12 @@ console.log(categories);
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
 
+        {/* Parent Category */}
         <div>
           <label className="block mb-2.5 text-sm font-semibold text-gray-800">
             Parent Category
@@ -75,24 +114,41 @@ console.log(categories);
           <select
             value={parent}
             onChange={(e) => setParent(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
           >
             <option value="">No Parent (Main Category)</option>
-            {categories.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
+            {categories
+              .filter((c) => !editingCategory || c._id !== editingCategory._id)
+              .map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
+              ))}
           </select>
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="mt-8 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3.5 rounded-lg text-base transition-all duration-200 shadow-sm hover:shadow-md"
-      >
-        Add Category
-      </button>
+      <div className="flex gap-4 mt-8">
+        <button
+          type="submit"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3.5 rounded-lg text-base transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+          {editingCategory ? "Update Category" : "Add Category"}
+        </button>
+
+        {editingCategory && (
+          <button
+            type="button"
+            onClick={() => {
+              resetForm();
+              setEditingCategory(null);
+            }}
+            className="flex-1 bg-gray-300 hover:bg-gray-400 active:bg-gray-500 text-gray-700 font-semibold py-3.5 rounded-lg text-base transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 };
