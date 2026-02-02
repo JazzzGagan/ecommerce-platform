@@ -12,9 +12,7 @@ export default function UserCard({ user }) {
       <p className="text-gray-700 mb-1">
         <strong>Email:</strong> {user?.email}
       </p>
-      <p className="text-gray-700 mb-1">
-        <strong>Email:</strong> {user?.email}
-      </p>
+
       <p className="text-gray-700 mb-1">
         <strong>Role:</strong> {user?.roles}
       </p>

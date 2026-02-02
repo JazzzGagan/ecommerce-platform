@@ -49,7 +49,7 @@ const CategoryList = ({ categories, fetchCategories, onEdit }) => {
                   {onEdit && (
                     <button
                       onClick={() => onEdit(c)}
-                      className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:cursor-pointer hover:scale-105 transition duration-200"
+                      className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md text-white rounded hover:cursor-pointer hover:scale-105 transition duration-200"
                     >
                       Edit
                     </button>
@@ -57,7 +57,7 @@ const CategoryList = ({ categories, fetchCategories, onEdit }) => {
                   <button
                     disabled={loadingDeleteId === c._id}
                     onClick={() => handleDelete(c._id)}
-                    className="px-3 py-1 text-sm bg-red-500 text-white rounded disabled:opacity-50 hover:cursor-pointer hover:scale-105 transition duration-200"
+                    className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 shadow-sm hover:shadow-md text-white rounded disabled:opacity-50 hover:cursor-pointer hover:scale-105 transition duration-200"
                   >
                     {loadingDeleteId === c._id ? "Deleting..." : "Delete"}
                   </button>

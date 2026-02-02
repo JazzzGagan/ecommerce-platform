@@ -27,7 +27,7 @@ const Nav = () => {
 
   const mainCategories = categories.filter((c) => !c.parent);
   const subCategories = categories.filter((c) => c.parent);
-  console.log("subcategories", subCategories) v   
+  console.log("subcategories", subCategories) 
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
