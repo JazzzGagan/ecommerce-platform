@@ -5,12 +5,16 @@ import {
   updateCategory,
   deleteCategory,
 } from "../controllers/category.controller.js";
+import { checkAuthAdmin } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/", createCategory);
+// Admin (Protected)
+router.post("/", checkAuthAdmin, createCategory);
+// Public
 router.get("/", getCategories);
-router.patch("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
+// Admin (Protected)
+router.patch("/:id", checkAuthAdmin, updateCategory);
+router.delete("/:id", checkAuthAdmin, deleteCategory);
 
 export default router;

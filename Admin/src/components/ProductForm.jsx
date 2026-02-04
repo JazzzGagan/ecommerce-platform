@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import API from "../api/api";
 
 const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
+  const fileInputRef = useRef(null);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [category, setCategory] = useState("");
@@ -10,44 +11,74 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
   const [quantity, setQuantity] = useState(0);
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState([]);
+  const [hierarchicalCategories, setHierarchicalCategories] = useState([]);
 
-  const [images, setImages] = useState([]); 
-  const [imagePreviews, setImagePreviews] = useState([]); 
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
 
-  const [existingImages, setExistingImages] = useState([]); 
+  const [existingImages, setExistingImages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
-    API.get("/categories").then((res) => setCategories(res.data));
+    API.get("/categories").then((res) => {
+      setCategories(res.data);
+      // Build hierarchical structure
+      const organized = organizeCategories(res.data);
+      console.log("Organized categories:", organized);
+      setHierarchicalCategories(organized);
+    });
   }, []);
 
-  // Load editing product data
-  useEffect(() => {
-    if (editingProduct) {
-      setName(editingProduct.name);
-      setSlug(editingProduct.slug);
-      setCategory(editingProduct.category?._id || "");
-      setBrand(editingProduct.brand || "");
-      setPrice(editingProduct.price);
-      setQuantity(editingProduct.quantity);
-      setDescription(editingProduct.description || "");
+  // Organize categories into multi-level parent-child structure
+  const organizeCategories = (cats) => {
+    if (!cats || cats.length === 0) return [];
 
-      setExistingImages(editingProduct.images || []);
+    const categoryMap = {};
 
-      setImages([]);
-      setImagePreviews([]);
-    } else {
-      
-      resetForm();
-    }
-  }, [editingProduct]);
+    // Create a map of all categories with their full data
+    cats.forEach((cat) => {
+      categoryMap[cat._id] = {
+        ...cat,
+        children: [],
+        parentId: cat.parent
+          ? typeof cat.parent === "string"
+            ? cat.parent
+            : cat.parent._id || cat.parent
+          : null,
+      };
+    });
 
-  
-  useEffect(() => {
-    return () => {
-      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [imagePreviews]);
+    // Organize parent-child relationships
+    const rootCategories = [];
+    Object.values(categoryMap).forEach((cat) => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        // This is a child category
+        categoryMap[cat.parentId].children.push(cat);
+      } else if (!cat.parentId) {
+        // This is a root/parent category
+        rootCategories.push(cat);
+      }
+    });
+
+    return rootCategories.sort((a, b) => a.name.localeCompare(b.name));
+  };
+
+  // Recursively render category options with proper indentation
+  const renderCategoryOptions = (categories, level = 0) => {
+    return categories
+      .map((cat) => [
+        <option key={cat._id} value={cat._id}>
+          {"\u00A0".repeat(level * 3)}
+          {level > 0 ? "└─ " : ""}
+          {cat.name}
+        </option>,
+        ...(cat.children && cat.children.length > 0
+          ? renderCategoryOptions(cat.children, level + 1)
+          : []),
+      ])
+      .flat();
+  };
 
   const resetForm = () => {
     setName("");
@@ -60,7 +91,37 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
     setImages([]);
     setImagePreviews([]);
     setExistingImages([]);
+
+    // Clear file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
+
+  // Load editing product data
+  useEffect(() => {
+    if (editingProduct) {
+      setName(editingProduct.name);
+      setSlug(editingProduct.slug);
+      setCategory(editingProduct.category?._id || "");
+      setBrand(editingProduct.brand || "");
+      setPrice(editingProduct.price);
+      setQuantity(editingProduct.quantity);
+      setDescription(editingProduct.description || "");
+      setExistingImages(editingProduct.images || []);
+
+      setImages([]);
+      setImagePreviews([]);
+    } else {
+      resetForm();
+    }
+  }, [editingProduct]);
+
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
 
   // Handle new image selection
   const handleImageChange = (e) => {
@@ -71,52 +132,62 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
     setImagePreviews(previews);
   };
 
-  // Remove new image 
+  // Remove new image
   const removeImage = (index) => {
     setImages(images.filter((_, i) => i !== index));
     setImagePreviews(imagePreviews.filter((_, i) => i !== index));
   };
 
-  // Remove existing image 
+  // Remove existing image
   const removeExistingImage = (index) => {
     setExistingImages(existingImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("slug", slug);
-      formData.append("category", category);
-      formData.append("brand", brand);
-      formData.append("price", price);
-      formData.append("quantity", quantity);
-      formData.append("description", description);
+      console.log("=== FRONTEND SUBMIT ===");
+      console.log("Images array length:", images.length);
+      console.log("Images:", images);
 
-      images.forEach((img) => {
-        formData.append("images", img);
+      // Convert images to base64 strings for Cloudinary
+      const imagePromises = images.map((file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
       });
 
-      existingImages.forEach((imgUrl) => {
-        formData.append("existingImages", imgUrl);
-      });
+      const base64Images = await Promise.all(imagePromises);
+      console.log("Base64 images count:", base64Images.length);
+      console.log(
+        "First image preview (first 100 chars):",
+        base64Images[0]?.substring(0, 100),
+      );
+
+      const productData = {
+        name,
+        slug,
+        category,
+        brand,
+        price,
+        quantity,
+        description,
+        images: base64Images, // Send base64 encoded images
+        existingImages, // Keep existing image URLs
+      };
+
+      console.log("Sending product data with", base64Images.length, "images");
 
       if (editingProduct) {
-       
-        //console.log("Edit API called for product ID:", editingProduct._id);
-
-        await API.patch(`/products/${editingProduct._id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await API.patch(`/products/${editingProduct._id}`, productData);
         setEditingProduct(null);
       } else {
-        console.log("Create API called for new product");
-
-        await API.post("/products", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await API.post("/products", productData);
       }
 
       resetForm();
@@ -124,6 +195,8 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
     } catch (error) {
       console.error("Error submitting form:", error);
       alert("Failed to submit product. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,10 +258,16 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
             >
               <option value="">Select Category</option>
-              {categories.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
+              {hierarchicalCategories.map((parentCat) => (
+                <optgroup key={parentCat._id} label={parentCat.name}>
+                  {parentCat.children && parentCat.children.length > 0
+                    ? parentCat.children.map((childCat) => (
+                        <option key={childCat._id} value={childCat._id}>
+                          └─ {childCat.name}
+                        </option>
+                      ))
+                    : null}
+                </optgroup>
               ))}
             </select>
           </div>
@@ -253,8 +332,12 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
         <div>
           <label className="block mb-2.5 text-sm font-semibold text-gray-800">
             Product Images
+            <span className="text-gray-500 font-normal text-xs ml-2">
+              (Hold Ctrl/Cmd to select multiple)
+            </span>
           </label>
           <input
+            ref={fileInputRef}
             type="file"
             multiple
             accept="image/*"
@@ -310,9 +393,17 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
 
       <button
         type="submit"
-        className="mt-8 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3.5 rounded-lg text-base transition-all duration-200 shadow-sm hover:shadow-md"
+        disabled={loading}
+        className="mt-8 w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-lg text-base transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
       >
-        {editingProduct ? "Update Product" : "Add Product"}
+        {loading ? (
+          <>
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>{editingProduct ? "Updating..." : "Adding..."}</span>
+          </>
+        ) : (
+          <span>{editingProduct ? "Update Product" : "Add Product"}</span>
+        )}
       </button>
     </form>
   );

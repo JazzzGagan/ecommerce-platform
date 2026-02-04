@@ -1,18 +1,27 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Products from "./pages/Products.jsx";
 import AdminLayout from "./components/Layout/AdminLayout.jsx";
 import DashBoard from "./pages/DashBoard.jsx";
 import Catagories from "./pages/Catagories.jsx";
 import UsersList from "./components/userList.jsx";
+import AdminLogin from "./pages/AdminLogin.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
   return (
     <>
       <Routes>
-        {/* <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} /> */}
+        <Route path="/" element={<Navigate to="/admin" replace />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<DashBoard />} />
           <Route path="categories" element={<Catagories />} />
           <Route path="products" element={<Products />} />

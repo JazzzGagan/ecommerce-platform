@@ -12,6 +12,8 @@ const Products = () => {
     setProducts(res.data);
   };
 
+  console.log("test", products);
+  
   useEffect(() => {
     fetchProducts();
   }, []);

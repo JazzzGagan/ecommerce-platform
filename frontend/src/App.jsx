@@ -4,6 +4,9 @@ import Layout from "./components/Layout/Layout.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
+import PrivateRoute from "./components/PrivateRoute.jsx";
+import Cart from "./pages/Cart.jsx";
+import ProductDetail from "./pages/ProductDetail.jsx";
 
 function App() {
   return (
@@ -13,7 +16,23 @@ function App() {
           <Route index element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="test" element={<Test />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route
+            path="/cart"
+            element={
+              <PrivateRoute>
+                <Cart />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="test"
+            element={
+              <PrivateRoute>
+                <Test />
+              </PrivateRoute>
+            }
+          />
         </Route>
       </Routes>
     </>

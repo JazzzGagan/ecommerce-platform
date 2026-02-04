@@ -40,7 +40,7 @@ const CategoryForm = ({
       const payload = {
         name,
         slug,
-        parent: parent || null, 
+        parent: parent || null,
       };
 
       if (editingCategory) {
@@ -57,6 +57,8 @@ const CategoryForm = ({
       alert("Failed to submit category. Please try again.");
     }
   };
+
+  const excludedId = editingCategory?._id;
 
   return (
     <form
@@ -118,7 +120,8 @@ const CategoryForm = ({
           >
             <option value="">No Parent (Main Category)</option>
             {categories
-              .filter((c) => !editingCategory || c._id !== editingCategory._id)
+              .filter((c) => !c.parent)
+              .filter((c) => c._id !== excludedId)
               .map((c) => (
                 <option key={c._id} value={c._id}>
                   {c.name}
