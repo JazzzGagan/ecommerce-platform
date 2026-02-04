@@ -1,11 +1,22 @@
 import React from "react";
-import { FaBars } from "react-icons/fa";
+import { FaBars, FaUserCircle } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
+
 const NavBar = ({ toogleSidebar }) => {
+  const { user } = useAuth();
+
   return (
-    <div className="w-full h-20  flex items-center justify-start  text-white bg-neutral">
+    <div className="w-full h-20 flex items-center justify-between text-white bg-neutral px-8">
       <button onClick={toogleSidebar}>
-        <FaBars className="ml-8 text-3xl cursor-pointer" />
+        <FaBars className="text-3xl cursor-pointer" />
       </button>
+
+      <div className="flex items-center gap-2">
+        <FaUserCircle className="text-2xl" />
+        <span className="text-sm font-medium">
+          {user?.firstName} {user?.lastName}
+        </span>
+      </div>
     </div>
   );
 };

@@ -41,7 +41,7 @@ const checkAuthAdmin = (req, res, next) => {
 
   try {
     const user = jwt.verify(token, JWT_SECRET_KEY);
-    if (!user.roles || !user.roles.includes("Admin")) {
+    if (!user.roles || !user.roles.includes("admin")) {
       return res
         .status(403)
         .json({ message: "Unauthorized access: Admin only" });
@@ -53,4 +53,25 @@ const checkAuthAdmin = (req, res, next) => {
   }
 };
 
-export { checkAuth, checkAuthAdmin };
+const checkAuthRole = (roles) => (req, res, next) => {
+  const token = getTokenFromRequest(req);
+
+  if (!token) {
+    return res.status(401).json({ message: "No token, authorization denied" });
+  }
+
+  try {
+    const user = jwt.verify(token, JWT_SECRET_KEY);
+    if (!user.roles || !roles.some((role) => user.roles.includes(role))) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized access: Insufficient permissions" });
+    }
+    req.authUser = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: "Token is not valid" });
+  }
+};
+
+export { checkAuth, checkAuthAdmin, checkAuthRole };

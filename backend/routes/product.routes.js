@@ -15,9 +15,9 @@ const router = express.Router();
 router.get("/", getProducts);
 router.get("/:id", getProductById);
 
-// Admin
-router.post("/", productImageUpload, createProduct);
-router.patch("/:id", productImageUpload, updateProduct);
-router.delete("/:id", deleteProduct);
+// Admin (Protected)
+router.post("/", checkAuthAdmin, productImageUpload, createProduct);
+router.patch("/:id", checkAuthAdmin, productImageUpload, updateProduct);
+router.delete("/:id", checkAuthAdmin, deleteProduct);
 
 export default router;

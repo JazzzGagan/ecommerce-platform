@@ -29,13 +29,13 @@ const Header = () => {
 
   const getSubCategories = (parentId) =>
     categories.filter(
-      (c) => c.parent?._id === parentId || c.parent === parentId
+      (c) => c.parent?._id === parentId || c.parent === parentId,
     );
   const getProductsBySubCategory = (subCategoryId) =>
     products.filter(
-      (p) => p.category?._id === subCategoryId || p.category === subCategoryId
+      (p) => p.category?._id === subCategoryId || p.category === subCategoryId,
     );
-  console.log("products", products);
+  // console.log("products", products);
 
   return (
     <header className="main-header">
@@ -148,8 +148,12 @@ const Header = () => {
                       {products.map((p) => (
                         <li key={p._id}>
                           <NavLink
-                            to={`/product/${p.slug || p.name}`}
+                            to={`/product/${p._id}`}
                             className="submenu-link"
+                            onClick={() => {
+                              setActiveCategory(null);
+                              setIsMenuOpen(false);
+                            }}
                           >
                             {p.name}
                           </NavLink>
