@@ -2,14 +2,22 @@ import { useState } from "react";
 // import LogoS from "../assets/images/logo.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FaXmark, FaCaretDown, FaCaretUp } from "react-icons/fa6";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import MenuData from "../MenuData/MenuData.jsx";
 import { faSignOut } from "@fortawesome/free-solid-svg-icons";
+import { useAuth } from "../../context/AuthContext";
 
 const Sidebar = ({ toogleSidebar, isVisible }) => {
   const [submenuOpen, setSubmenuOpen] = useState(false); // State to manage dropdown
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const toggleSubmenu = () => setSubmenuOpen(!submenuOpen);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/admin/login");
+  };
 
   return (
     <div
@@ -17,7 +25,10 @@ const Sidebar = ({ toogleSidebar, isVisible }) => {
         isVisible ? "translate-x-0" : "-translate-x-full"
       } transition-transform duration-300`}
     >
-      <button onClick={toogleSidebar} className="p-4 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+      <button
+        onClick={toogleSidebar}
+        className="p-4 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+      >
         <FaXmark className="text-2xl text-gray-600" />
       </button>
 
@@ -41,7 +52,11 @@ const Sidebar = ({ toogleSidebar, isVisible }) => {
               <span className="flex-1">{item.title}</span>
               {item.submenu && (
                 <span className="flex-shrink-0 text-gray-400">
-                  {submenuOpen ? <FaCaretUp size={14} /> : <FaCaretDown size={14} />}
+                  {submenuOpen ? (
+                    <FaCaretUp size={14} />
+                  ) : (
+                    <FaCaretDown size={14} />
+                  )}
                 </span>
               )}
             </NavLink>
@@ -71,7 +86,10 @@ const Sidebar = ({ toogleSidebar, isVisible }) => {
       </nav>
 
       <div className="w-full border-t border-gray-200 p-4 bg-gray-50">
-        <button className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all duration-200">
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all duration-200"
+        >
           <FontAwesomeIcon icon={faSignOut} className="text-lg" />
           <p>Logout</p>
         </button>

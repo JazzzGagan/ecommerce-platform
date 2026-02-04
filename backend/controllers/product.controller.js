@@ -1,43 +1,65 @@
 import Product from "../models/product.model.js";
 import fs from "fs";
 import path from "path";
+import cloudinary from "cloudinary";
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Create product
 export const createProduct = async (req, res) => {
   try {
-    const { name, slug, category, price, brand, description, quantity } =
-      req.body;
+    console.log("=== CREATE PRODUCT REQUEST ===");
+    console.log("Request body keys:", Object.keys(req.body));
 
-    if (!name || !slug || !category || price === undefined) {
-      return res.status(400).json({ message: "Required fields missing" });
+    const { images, existingImages, ...productData } = req.body;
+    console.log("Product data:", productData);
+    console.log("Images field type:", typeof images);
+    console.log("Images field value:", images);
+    console.log("Number of images received:", images?.length || 0);
+
+    const imageUrls = [];
+    if (images && images.length > 0) {
+      console.log("Starting Cloudinary upload...");
+      for (let i = 0; i < images.length; i++) {
+        console.log(`Uploading image ${i + 1}/${images.length}...`);
+        try {
+          const result = await cloudinary.v2.uploader.upload(images[i], {
+            folder: "ecommerce/products",
+          });
+          console.log(`✓ Image ${i + 1} uploaded successfully`);
+          console.log(`  - URL: ${result.secure_url}`);
+          console.log(`  - Public ID: ${result.public_id}`);
+          console.log(`  - Format: ${result.format}`);
+          imageUrls.push(result.secure_url);
+        } catch (uploadError) {
+          console.error(
+            `✗ Failed to upload image ${i + 1}:`,
+            uploadError.message,
+          );
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
+      }
     }
 
-    // Extract image paths from uploaded files
-    const images = req.files ? req.files.map((file) => file.path) : [];
+    const allImages = [...(existingImages || []), ...imageUrls];
+    console.log("All image URLs:", allImages);
 
-    // Check if slug already exists
-    const existing = await Product.findOne({ slug });
-    if (existing) {
-      return res.status(409).json({ message: "Slug already exists" });
-    }
+    const product = await Product.create({
+      ...productData,
+      images: allImages,
+    });
 
-    // Create product with images included
-    const productData = {
-      name,
-      slug,
-      category,
-      price,
-      brand,
-      description,
-      quantity,
-      images,
-    };
-
-    const product = await Product.create(productData);
-
+    console.log("✓ Product created successfully with ID:", product._id);
+    console.log("=================================");
     res.status(201).json(product);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("✗ Error creating product:", error.message);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -91,7 +113,12 @@ export const updateProduct = async (req, res) => {
       description,
       quantity,
       existingImages,
+      images,
     } = req.body;
+
+    console.log("=== UPDATE PRODUCT REQUEST ===");
+    console.log("Existing images:", existingImages);
+    console.log("New images count:", images?.length || 0);
 
     let existingImgs = [];
     if (existingImages) {
@@ -102,9 +129,33 @@ export const updateProduct = async (req, res) => {
       }
     }
 
-    const newImages = req.files ? req.files.map((file) => file.path) : [];
+    const imageUrls = [];
 
-    const images = [...existingImgs, ...newImages];
+    // Upload new base64 images to Cloudinary
+    if (images && images.length > 0) {
+      console.log("Starting Cloudinary upload for new images...");
+      for (let i = 0; i < images.length; i++) {
+        console.log(`Uploading image ${i + 1}/${images.length}...`);
+        try {
+          const result = await cloudinary.v2.uploader.upload(images[i], {
+            folder: "ecommerce/products",
+          });
+          console.log(`✓ Image ${i + 1} uploaded successfully`);
+          console.log(`  - URL: ${result.secure_url}`);
+          console.log(`  - Public ID: ${result.public_id}`);
+          imageUrls.push(result.secure_url);
+        } catch (uploadError) {
+          console.error(
+            `✗ Failed to upload image ${i + 1}:`,
+            uploadError.message,
+          );
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
+      }
+    }
+
+    const allImages = [...existingImgs, ...imageUrls];
+    console.log("All images to save:", allImages);
 
     const productData = {
       name,
@@ -114,22 +165,25 @@ export const updateProduct = async (req, res) => {
       brand,
       description,
       quantity,
-      images,
+      images: allImages,
     };
 
     // Update product
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       productData,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    console.log("✓ Product updated successfully");
+    console.log("=================================");
     res.json(product);
   } catch (err) {
+    console.error("✗ Error updating product:", err.message);
     res.status(500).json({ error: err.message });
   }
 };

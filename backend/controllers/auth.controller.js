@@ -68,12 +68,13 @@ const login = async (req, res) => {
     const token = jwt.sign(
       {
         _id: user._id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         roles: user.roles,
       },
       JWT_SECRET_KEY,
-      { expiresIn: "20d" }
+      { expiresIn: "20d" },
     );
 
     // set cookie expiration

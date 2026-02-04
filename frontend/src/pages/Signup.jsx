@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import API from "../api/api";
 import "./Login.css";
+import { useAuth } from "../context/AuthContext";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -12,21 +14,53 @@ const Signup = () => {
   });
 
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setError("");
+    setSuccess("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-    // TODO: Wire up signup API call here
-    console.log("Signup payload", formData);
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await API.post("/auth/register", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
+      setSuccess(response.data.message || "Account created successfully!");
+      await login(formData.email, formData.password);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      navigate("/", { replace: true });
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || "Signup failed. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,6 +80,12 @@ const Signup = () => {
         {error && (
           <div className="forgot-link" style={{ color: "#d32f2f" }}>
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="forgot-link" style={{ color: "#4caf50" }}>
+            {success}
           </div>
         )}
 
@@ -115,8 +155,8 @@ const Signup = () => {
             />
           </div>
 
-          <button type="submit" className="login-btn">
-            Create an account
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? "Creating..." : "Create an account"}
           </button>
         </form>
 

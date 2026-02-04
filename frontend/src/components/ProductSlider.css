@@ -1,27 +1,33 @@
 .product-slider-section {
-  padding: 4rem 0;
-  background: #fff;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   width: 100%;
+  margin: 3rem 0;
 }
 
 .product-slider-section .container {
   max-width: 1600px;
   padding: 0 1rem;
+  margin: 0 auto;
 }
 
 .slider-section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 3rem;
   text-align: center;
+  letter-spacing: -0.5px;
 }
 
 .slider-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   max-width: 1600px;
   margin: 0 auto;
   width: 100%;
@@ -31,135 +37,147 @@
   flex: 1;
   overflow: hidden;
   position: relative;
+  border-radius: 12px;
 }
 
 .slider-track {
   display: flex;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }
 
 .slide-group {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 1rem;
+  gap: 1.25rem;
   min-width: 100%;
   flex-shrink: 0;
   width: 100%;
+  padding: 0 0.5rem;
 }
 
 .slider-nav-btn {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  border: 1px solid #e0e0e0;
+  border: 2px solid #e0e0e0;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #1a1a1a;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   z-index: 10;
 }
 
 .slider-nav-btn.prev-btn {
-  background: #1a1a1a;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
   color: #fff;
-  border-color: #1a1a1a;
+  border-color: transparent;
 }
 
 .slider-nav-btn.next-btn {
   background: #fff;
-  color: #999;
+  color: #1a1a1a;
   border-color: #e0e0e0;
 }
 
 .slider-nav-btn:hover:not(.disabled) {
-  background: #1a1a1a;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
   color: #fff;
-  border-color: #1a1a1a;
-  transform: scale(1.1);
+  border-color: transparent;
+  transform: scale(1.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .slider-nav-btn.disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .product-slide-card {
   background: #fff;
   border: 1px solid #e8e8e8;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   min-width: 0;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .product-slide-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border-color: #e8e8e8;
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  border-color: #d0d0d0;
 }
 
 .product-slide-image {
   position: relative;
   width: 100%;
   height: 240px;
-  background: #fff;
+  background: #f8f9fa;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 0.75rem;
+  padding: 1rem;
 }
 
 .product-slide-image img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .product-slide-card:hover .product-slide-image img {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
-
 .product-slide-info {
-  padding: 1rem;
+  padding: 1.25rem;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
 }
 
 .product-slide-name {
-  font-size: 0.8125rem;
-  font-weight: 400;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #1a1a1a;
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   line-height: 1.4;
   min-height: 2.5em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.product-slide-name:hover {
+  color: #ff4757;
 }
 
 .product-slide-rating {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
+  gap: 0.35rem;
+  font-size: 0.8rem;
 }
 
 .star {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #e0e0e0;
+  transition: transform 0.2s ease;
 }
 
 .star.filled {
@@ -170,86 +188,134 @@
   color: #e0e0e0;
 }
 
+.review-count {
+  color: #999;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
 .product-slide-price {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .original-price {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #999;
   text-decoration: line-through;
   font-weight: 400;
 }
 
 .current-price {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #ff4757;
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.discount-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%);
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .add-to-cart-btn {
   width: 100%;
-  padding: 0.875rem;
-  background: #ff4757;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9375rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
 }
 
 .add-to-cart-btn:hover {
-  background: #ee5a6f;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+  background: linear-gradient(135deg, #ff6b7a 0%, #ff8190 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+}
+
+.add-to-cart-btn:active {
+  transform: translateY(-1px);
 }
 
 .slider-dots {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
 }
 
 .dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  border: none;
-  background: #e0e0e0;
+  border: 2px solid #e0e0e0;
+  background: #f0f0f0;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dot:hover {
+  border-color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
 }
 
 .dot.active {
-  background: #ff4757;
-  width: 24px;
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%);
+  width: 28px;
   border-radius: 5px;
+  border-color: transparent;
 }
 
 @media (max-width: 1600px) {
   .slide-group {
     grid-template-columns: repeat(5, 1fr);
-    gap: 0.75rem;
+    gap: 1rem;
   }
 }
 
 @media (max-width: 1400px) {
   .slide-group {
     grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .slider-section-title {
+    font-size: 2rem;
   }
 }
 
 @media (max-width: 1200px) {
   .slide-group {
     grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .product-slider-section {
+    padding: 3rem 1rem;
   }
 }
 
@@ -263,11 +329,39 @@
     width: 40px;
     height: 40px;
   }
+
+  .slider-section-title {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
 }
 
 @media (max-width: 640px) {
   .slide-group {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .slider-wrapper {
+    gap: 1rem;
+  }
+
+  .slider-nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .product-slide-card {
+    border-radius: 10px;
+  }
+
+  .slider-section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .product-slider-section {
+    padding: 2rem 1rem;
+    margin: 2rem 0;
   }
 }
-
