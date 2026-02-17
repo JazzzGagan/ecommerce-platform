@@ -10,11 +10,66 @@ const CategoryForm = ({
   const [slug, setSlug] = useState("");
   const [parent, setParent] = useState("");
   const [categories, setCategories] = useState([]);
+  const [hierarchicalCategories, setHierarchicalCategories] = useState([]);
 
   // Load categories to select parent
   useEffect(() => {
-    API.get("/categories").then((res) => setCategories(res.data));
+    API.get("/categories").then((res) => {
+      setCategories(res.data);
+      setHierarchicalCategories(organizeCategories(res.data));
+    });
   }, []);
+
+  const organizeCategories = (cats) => {
+    if (!cats || cats.length === 0) return [];
+
+    const categoryMap = {};
+
+    cats.forEach((cat) => {
+      categoryMap[cat._id] = {
+        ...cat,
+        children: [],
+        parentId: cat.parent
+          ? typeof cat.parent === "string"
+            ? cat.parent
+            : cat.parent._id || cat.parent
+          : null,
+      };
+    });
+
+    const rootCategories = [];
+    Object.values(categoryMap).forEach((cat) => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(cat);
+      } else if (!cat.parentId) {
+        rootCategories.push(cat);
+      }
+    });
+
+    rootCategories.forEach((root) =>
+      root.children.sort((a, b) => a.name.localeCompare(b.name)),
+    );
+
+    return rootCategories.sort((a, b) => a.name.localeCompare(b.name));
+  };
+
+  const renderCategoryOptions = (categories, level = 0) =>
+    categories
+      .map((cat) => {
+        if (cat._id === excludedId) return [];
+
+        return [
+          <option key={cat._id} value={cat._id}>
+            {"\u00A0".repeat(level * 3)}
+            {level > 0 ? "└─ " : ""}
+            {cat.name}
+          </option>,
+          ...(cat.children && cat.children.length > 0
+            ? renderCategoryOptions(cat.children, level + 1)
+            : []),
+        ];
+      })
+      .flat();
 
   // Load data when editingCategory changes
   useEffect(() => {
@@ -119,14 +174,7 @@ const CategoryForm = ({
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
           >
             <option value="">No Parent (Main Category)</option>
-            {categories
-              .filter((c) => !c.parent)
-              .filter((c) => c._id !== excludedId)
-              .map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
+            {renderCategoryOptions(hierarchicalCategories)}
           </select>
         </div>
       </div>

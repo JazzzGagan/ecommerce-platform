@@ -124,11 +124,11 @@ const ProductSlider = ({ products, title }) => {
                           </div>
                           <div className="product-slide-price">
                             {product.originalPrice && (
-                              <span className="original-price">
+                              <span className="slide-original-price">
                                 रु {product.originalPrice}
                               </span>
                             )}
-                            <span className="current-price">
+                            <span className="slide-current-price">
                               रु {product.price}
                             </span>
                             {product.originalPrice && (

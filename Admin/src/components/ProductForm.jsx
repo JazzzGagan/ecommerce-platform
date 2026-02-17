@@ -68,10 +68,15 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
   const renderCategoryOptions = (categories, level = 0) => {
     return categories
       .map((cat) => [
-        <option key={cat._id} value={cat._id}>
+        <option
+          key={cat._id}
+          value={cat._id}
+          disabled={cat.children && cat.children.length > 0}
+        >
           {"\u00A0".repeat(level * 3)}
           {level > 0 ? "└─ " : ""}
           {cat.name}
+          {cat.children && cat.children.length > 0 ? " (Parent)" : ""}
         </option>,
         ...(cat.children && cat.children.length > 0
           ? renderCategoryOptions(cat.children, level + 1)
@@ -258,17 +263,7 @@ const ProductForm = ({ fetchProducts, editingProduct, setEditingProduct }) => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-regular transition-all duration-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
             >
               <option value="">Select Category</option>
-              {hierarchicalCategories.map((parentCat) => (
-                <optgroup key={parentCat._id} label={parentCat.name}>
-                  {parentCat.children && parentCat.children.length > 0
-                    ? parentCat.children.map((childCat) => (
-                        <option key={childCat._id} value={childCat._id}>
-                          └─ {childCat.name}
-                        </option>
-                      ))
-                    : null}
-                </optgroup>
-              ))}
+              {renderCategoryOptions(hierarchicalCategories)}
             </select>
           </div>
           <div>

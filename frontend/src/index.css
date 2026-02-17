@@ -7,8 +7,15 @@
 
 :root {
   /* Premium Typography */
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
   line-height: 1.6;
   font-weight: 400;
   color: #1a1a1a;
@@ -54,9 +61,7 @@
   --spacing-3xl: 4rem; /* 64px */
   --spacing-4xl: 6rem; /* 96px */
 
-  /* Colors */
-  --color-primary: #667eea;
-  --color-primary-dark: #764ba2;
+  /* Additional Colors */
   --color-text: #1a1a1a;
   --color-text-light: #666;
   --color-text-lighter: #999;
