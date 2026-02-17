@@ -6,22 +6,34 @@ import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import Cart from "./pages/Cart.jsx";
+import Checkout from "./pages/Checkout.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
+import CategoryProducts from "./pages/CategoryProducts.jsx";
 
 function App() {
   return (
+    
     <>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/category/:slug" element={<CategoryProducts />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route
             path="/cart"
             element={
               <PrivateRoute>
                 <Cart />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <PrivateRoute>
+                <Checkout />
               </PrivateRoute>
             }
           />

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { IoMdArrowDropdown } from "react-icons/io";
+import { useCart } from "../context/CartContext.jsx";
 import "./Header.css";
 import logo from "../assets/logos/Group 2.svg";
 import API from "../api/api";
@@ -11,6 +12,10 @@ const Header = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchCategory, setSearchCategory] = useState("all");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const { items, itemCount, total, removeFromCart } = useCart();
 
   useEffect(() => {
     API.get(`/categories`)
@@ -35,13 +40,91 @@ const Header = () => {
     products.filter(
       (p) => p.category?._id === subCategoryId || p.category === subCategoryId,
     );
-  // console.log("products", products);
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredProducts = normalizedQuery
+    ? products.filter((p) => {
+        const nameMatch = p.name?.toLowerCase().includes(normalizedQuery);
+        if (!nameMatch) return false;
+        if (searchCategory === "all") return true;
+        const productCategory = p.category?.slug || p.category?.name || "";
+        return productCategory.toLowerCase() === searchCategory.toLowerCase();
+      })
+    : [];
+
+  const suggestions = filteredProducts.slice(0, 6);
 
   return (
     <header className="main-header">
       <div className="header-container">
-        <div className="header-logo">
-          <img src={logo} alt="Bites and B" />
+        <Link to="/">
+          <div className="header-logo">
+            <img src={logo} alt="Bites and B" />
+          </div>
+        </Link>
+
+        <div
+          className="header-search"
+          role="search"
+          onFocus={() => setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+        >
+          <div className="search-group">
+            <input
+              type="text"
+              placeholder="Search"
+              aria-label="Search products"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="search-divider" />
+            <select
+              aria-label="Search category"
+              value={searchCategory}
+              onChange={(e) => setSearchCategory(e.target.value)}
+            >
+              <option value="all">All Categories</option>
+              {mainCategories.map((c) => (
+                <option key={c._id || c.id} value={c.slug || c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            className="search-btn"
+            aria-label="Search"
+            onClick={() => setShowSuggestions(true)}
+          >
+            Search
+          </button>
+          {showSuggestions && normalizedQuery && (
+            <div className="search-suggestions">
+              {suggestions.length === 0 ? (
+                <div className="search-empty">No matching products</div>
+              ) : (
+                suggestions.map((p) => (
+                  <Link
+                    key={p._id}
+                    to={`/product/${p._id}`}
+                    className="search-suggestion"
+                    onClick={() => {
+                      setShowSuggestions(false);
+                      setSearchQuery("");
+                    }}
+                  >
+                    <img src={p.image || p.images?.[0] || ""} alt={p.name} />
+                    <div className="search-suggestion-info">
+                      <span className="search-suggestion-name">{p.name}</span>
+                      <span className="search-suggestion-price">
+                        ${p.price}
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         <div className="header-actions">
@@ -59,21 +142,72 @@ const Header = () => {
             <span>Compare</span>
           </button>
 
-          <button className="cart-btn" aria-label="Shopping cart">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <path d="M16 10a4 4 0 0 1-8 0"></path>
-            </svg>
-            <span>Shopping cart</span>
-          </button>
+          <div className="cart-wrapper">
+            <button className="cart-btn" aria-label="Shopping cart">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+              <span>Shopping cart</span>
+              {itemCount > 0 && (
+                <span className="cart-badge" aria-label="Cart items">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+            <div className="mini-cart">
+              {items.length === 0 ? (
+                <div className="mini-cart-empty">Your cart is empty</div>
+              ) : (
+                <>
+                  <div className="mini-cart-items">
+                    {items.slice(0, 4).map((item) => (
+                      <div key={item.productId} className="mini-cart-item">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="mini-cart-thumb"
+                        />
+                        <div className="mini-cart-info">
+                          <span className="mini-cart-name">{item.name}</span>
+                          <span className="mini-cart-meta">
+                            {item.quantity} × ${item.price}
+                          </span>
+                        </div>
+                        <button
+                          className="mini-cart-remove"
+                          onClick={() => removeFromCart(item.productId)}
+                          aria-label="Remove item"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mini-cart-total">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                  <div className="mini-cart-actions">
+                    <Link to="/cart" className="mini-cart-view">
+                      View Cart
+                    </Link>
+                    <Link to="/checkout" className="mini-cart-checkout">
+                      Checkout
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
 
           <button className="wishlist-btn" aria-label="My Wish List">
             <svg
@@ -135,7 +269,7 @@ const Header = () => {
           <div className="submenu full-width">
             <div className="submenu-container">
               {getSubCategories(activeCategory).map((sub) => {
-                const products = getProductsBySubCategory(sub._id);
+                const childCategories = getSubCategories(sub._id);
                 return (
                   <div key={sub._id} className="submenu-column">
                     <NavLink
@@ -144,22 +278,24 @@ const Header = () => {
                     >
                       {sub.name}
                     </NavLink>
-                    <ul>
-                      {products.map((p) => (
-                        <li key={p._id}>
-                          <NavLink
-                            to={`/product/${p._id}`}
-                            className="submenu-link"
-                            onClick={() => {
-                              setActiveCategory(null);
-                              setIsMenuOpen(false);
-                            }}
-                          >
-                            {p.name}
-                          </NavLink>
-                        </li>
-                      ))}
-                    </ul>
+                    {childCategories.length > 0 && (
+                      <ul>
+                        {childCategories.map((child) => (
+                          <li key={child._id}>
+                            <NavLink
+                              to={`/category/${child.slug || child.name}`}
+                              className="submenu-link"
+                              onClick={() => {
+                                setActiveCategory(null);
+                                setIsMenuOpen(false);
+                              }}
+                            >
+                              {child.name}
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 );
               })}
