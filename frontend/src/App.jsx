@@ -9,10 +9,11 @@ import Cart from "./pages/Cart.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import CategoryProducts from "./pages/CategoryProducts.jsx";
+import Account from "./pages/Account.jsx";
+import ShippingBilling from "./pages/ShippingBilling.jsx";
 
 function App() {
   return (
-    
     <>
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -34,6 +35,22 @@ function App() {
             element={
               <PrivateRoute>
                 <Checkout />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/shipping-billing-address"
+            element={
+              <PrivateRoute>
+                <ShippingBilling />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <PrivateRoute>
+                <Account />
               </PrivateRoute>
             }
           />

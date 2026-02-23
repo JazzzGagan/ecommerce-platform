@@ -2,11 +2,13 @@ import { useState } from "react";
 import "./ProductSlider.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 const ProductSlider = ({ products, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const itemsPerView = 5;
+  const itemsPerView = 4;
   const { isAuthenticated } = useAuth();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
 
   const totalSlides = Math.ceil(products.length / itemsPerView);
@@ -35,8 +37,7 @@ const ProductSlider = ({ products, title }) => {
       navigate("/login", { state: { from: { pathname: "/" } } });
       return;
     }
-    // TODO: implement add-to-cart logic
-    console.log("Added to cart:", product.name);
+    addToCart(product, 1);
   };
 
   const handleOpenProduct = (product) => {
@@ -109,55 +110,15 @@ const ProductSlider = ({ products, title }) => {
                           >
                             {product.name}
                           </h3>
-                          <div className="product-slide-rating">
-                            {[...Array(5)].map((_, i) => (
-                              <span
-                                key={i}
-                                className={`star ${i < (product.rating || 0) ? "filled" : "outline"}`}
-                              >
-                                {i < (product.rating || 0) ? "★" : "☆"}
-                              </span>
-                            ))}
-                            <span className="review-count">
-                              ({product.reviews || 0})
-                            </span>
-                          </div>
                           <div className="product-slide-price">
-                            {product.originalPrice && (
-                              <span className="slide-original-price">
-                                रु {product.originalPrice}
-                              </span>
-                            )}
                             <span className="slide-current-price">
                               रु {product.price}
                             </span>
-                            {product.originalPrice && (
-                              <span className="discount-badge">
-                                {Math.round(
-                                  ((product.originalPrice - product.price) /
-                                    product.originalPrice) *
-                                    100,
-                                )}
-                                % OFF
-                              </span>
-                            )}
                           </div>
                           <button
                             className="add-to-cart-btn"
                             onClick={() => handleAddToCart(product)}
                           >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <circle cx="9" cy="21" r="1"></circle>
-                              <circle cx="20" cy="21" r="1"></circle>
-                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                            </svg>
                             Add to Cart
                           </button>
                         </div>

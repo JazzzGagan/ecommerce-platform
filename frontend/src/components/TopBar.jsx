@@ -26,7 +26,9 @@ const TopBar = () => {
         <div className="top-bar-right">
           {isAuthenticated ? (
             <>
-              <span className="account-link">Hi, {displayName}</span>
+              <Link to="/account" className="account-link">
+                Hi, {displayName}
+              </Link>
               <button
                 type="button"
                 className="sign-in-link"
