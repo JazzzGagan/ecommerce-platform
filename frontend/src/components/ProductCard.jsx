@@ -54,25 +54,14 @@ const ProductCard = ({ product }) => {
         >
           {product.name}
         </h3>
-        <div className="product-rating">
-          {[...Array(5)].map((_, i) => (
-            <span
-              key={i}
-              className={`star ${i < (product.rating || 0) ? "filled" : ""}`}
-            >
-              ★
-            </span>
-          ))}
-          <span className="rating-count">({product.reviews || 0})</span>
-        </div>
         <div className="product-card-price">
           {product.originalPrice && (
-            <span className="original-price">${product.originalPrice}</span>
+            <span className="original-price">NPR {product.originalPrice}</span>
           )}
-          <span className="current-price">${product.price}</span>
+          <span className="current-price">NPR {product.price}</span>
         </div>
         <button className="add-to-cart-btn" onClick={handleAddToCart}>
-          Add to Cart
+          Add to Bag
         </button>
       </div>
     </div>

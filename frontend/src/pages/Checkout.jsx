@@ -8,8 +8,7 @@ const Checkout = () => {
 
   const handlePlaceOrder = () => {
     if (items.length === 0) return;
-    clearCart();
-    navigate("/");
+    navigate("/shipping-billing-address");
   };
 
   if (items.length === 0) {
