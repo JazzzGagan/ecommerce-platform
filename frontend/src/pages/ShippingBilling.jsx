@@ -1,12 +1,56 @@
 import { useState } from "react";
 import "./ShippingBilling.css";
+import esewaLogo from "../assets/logoPayment/Esewa.png";
+import khaltiLogo from "../assets/logoPayment/khalti.png";
+import fonepayLogo from "../assets/logoPayment/fonepay.png";
+import { useCart } from "../context/CartContext.jsx";
 
 const ShippingBilling = () => {
-  const [shippingAddress, setShippingAddress] = useState("");
-  const [billingAddress, setBillingAddress] = useState("");
+  const { items, total } = useCart();
+
+  const [shipping, setShipping] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    country: "Nepal",
+    address: "",
+    building: "",
+    city: "",
+    zone: "",
+    zip: "",
+  });
+
+  const [billing, setBilling] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    country: "Nepal",
+    address: "",
+    building: "",
+    city: "",
+    zone: "",
+    zip: "",
+  });
+
+  const [paymentMethod, setPaymentMethod] = useState("esewa");
+  const [useSeparateBilling, setUseSeparateBilling] = useState(false);
+
+  const handleShippingChange = (e) => {
+    setShipping({ ...shipping, [e.target.name]: e.target.value });
+  };
+
+  const handleBillingChange = (e) => {
+    setBilling({ ...billing, [e.target.name]: e.target.value });
+  };
+
+  const shippingCost = total > 0 ? 0 : 0;
+  const grandTotal = total + shippingCost;
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const formatNpr = (amount) => `रु ${Number(amount || 0).toFixed(2)}`;
 
   return (
     <div className="shipping-page">
+      {/* Steps */}
       <div className="shipping-steps">
         <div className="step-item active">
           <span className="step-dot">1</span>
@@ -24,43 +68,267 @@ const ShippingBilling = () => {
         </div>
       </div>
 
+      {/* Main Layout */}
       <div className="shipping-layout">
+        {/* Left Form */}
         <section className="shipping-left">
+          {/* Shipping Info */}
           <div className="section-card">
-            <h2>Shipping address</h2>
-            {shippingAddress ? (
-              <p className="address-text">{shippingAddress}</p>
-            ) : (
-              <p className="empty-text">
-                There is no address yet. Please create new address to continue.
-              </p>
-            )}
-            <button className="outline-btn" type="button">
-              Add new address
-            </button>
+            <h2 className="text-xl font-semibold">Shipping Address</h2>
+            <div className="form-stack">
+              {/* First Name + Last Name */}
+              <div className="form-row-2">
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={shipping.firstName}
+                  onChange={handleShippingChange}
+                  className="form-field"
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={shipping.lastName}
+                  onChange={handleShippingChange}
+                  className="form-field"
+                />
+              </div>
+
+              {/* Phone + Country */}
+              <div className="form-row-2">
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  value={shipping.phone}
+                  onChange={handleShippingChange}
+                  className="form-field"
+                />
+                <select
+                  name="country"
+                  value={shipping.country}
+                  onChange={handleShippingChange}
+                  className="form-field"
+                >
+                  <option value="Nepal">NP Nepal</option>
+                  <option value="USA">USA</option>
+                  <option value="India">India</option>
+                </select>
+              </div>
+
+              {/* Address (full width) */}
+              <input
+                type="text"
+                name="address"
+                placeholder="Street Address"
+                value={shipping.address}
+                onChange={handleShippingChange}
+                className="form-field"
+              />
+
+              <input
+                type="text"
+                name="building"
+                placeholder="Building / Apartment"
+                value={shipping.building}
+                onChange={handleShippingChange}
+                className="form-field"
+              />
+
+              {/* City + Zone + Zip */}
+              <div className="form-row-3">
+                <input
+                  type="text"
+                  name="city"
+                  placeholder="City"
+                  value={shipping.city}
+                  onChange={handleShippingChange}
+                  className="form-field"
+                />
+                <select
+                  name="zone"
+                  value={shipping.zone}
+                  onChange={handleShippingChange}
+                  className="form-field"
+                >
+                  <option value="">Select Zone</option>
+                  <option value="Bagmati">Bagmati</option>
+                  <option value="Gandaki">Gandaki</option>
+                  <option value="Lumbini">Lumbini</option>
+                  <option value="Koshi">Koshi</option>
+                </select>
+                <input
+                  type="text"
+                  name="zip"
+                  placeholder="Zip Code"
+                  value={shipping.zip}
+                  onChange={handleShippingChange}
+                  className="form-field"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="section-card">
-            <h2>Billing address</h2>
-            {billingAddress ? (
-              <p className="address-text">{billingAddress}</p>
-            ) : (
-              <p className="empty-text">
-                There is no address yet. Please create new address to continue.
+            <div className="billing-toggle">
+              <p className="billing-toggle-text">
+                Billing address is same as shipping.
               </p>
-            )}
-            <button className="outline-btn outline-danger" type="button">
-              Add new address
-            </button>
+              <button
+                type="button"
+                className="outline-btn"
+                onClick={() => setUseSeparateBilling((prev) => !prev)}
+              >
+                {useSeparateBilling
+                  ? "Use shipping as billing"
+                  : "Add separate billing address"}
+              </button>
+            </div>
           </div>
 
+          {/* Billing Info */}
+          {useSeparateBilling && (
+            <div className="section-card">
+              <h2>Billing Address</h2>
+              <div className="form-stack">
+                <div className="form-row-2">
+                  <input
+                    type="text"
+                    name="firstName"
+                    placeholder="First Name"
+                    value={billing.firstName}
+                    onChange={handleBillingChange}
+                    className="form-field"
+                  />
+                  <input
+                    type="text"
+                    name="lastName"
+                    placeholder="Last Name"
+                    value={billing.lastName}
+                    onChange={handleBillingChange}
+                    className="form-field"
+                  />
+                </div>
+                <div className="form-row-2">
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="Phone Number"
+                    value={billing.phone}
+                    onChange={handleBillingChange}
+                    className="form-field"
+                  />
+                  <select
+                    name="country"
+                    value={billing.country}
+                    onChange={handleBillingChange}
+                    className="form-field"
+                  >
+                    <option value="Nepal">NP Nepal</option>
+                    <option value="USA">USA</option>
+                    <option value="India">India</option>
+                  </select>
+                </div>
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Street Address"
+                  value={billing.address}
+                  onChange={handleBillingChange}
+                  className="form-field"
+                />
+                <input
+                  type="text"
+                  name="building"
+                  placeholder="Building / Apartment"
+                  value={billing.building}
+                  onChange={handleBillingChange}
+                  className="form-field"
+                />
+                <div className="form-row-3">
+                  <input
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={billing.city}
+                    onChange={handleBillingChange}
+                    className="form-field"
+                  />
+                  <select
+                    name="zone"
+                    value={billing.zone}
+                    onChange={handleBillingChange}
+                    className="form-field"
+                  >
+                    <option value="">Select Zone</option>
+                    <option value="Bagmati">Bagmati</option>
+                    <option value="Gandaki">Gandaki</option>
+                    <option value="Lumbini">Lumbini</option>
+                    <option value="Koshi">Koshi</option>
+                  </select>
+                  <input
+                    type="text"
+                    name="zip"
+                    placeholder="Zip Code"
+                    value={billing.zip}
+                    onChange={handleBillingChange}
+                    className="form-field"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Method */}
+          <div className="section-card">
+            <h2>Payment Method</h2>
+            <div className="payment-options">
+              <label className="payment-option">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="esewa"
+                  checked={paymentMethod === "esewa"}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <img src={esewaLogo} alt="eSewa" className="payment-logo" />
+              </label>
+              <label className="payment-option">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="khalti"
+                  checked={paymentMethod === "khalti"}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <img src={khaltiLogo} alt="Khalti" className="payment-logo" />
+              </label>
+              <label className="payment-option">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="fonepay"
+                  checked={paymentMethod === "fonepay"}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <img
+                  src={fonepayLogo}
+                  alt="Fonepay"
+                  className="payment-logo payment-logo-fonepay"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Next Button */}
           <div className="section-actions">
-            <button className="primary-btn" type="button">
-              Next
-            </button>
+            <button className="primary-btn">Next</button>
           </div>
         </section>
 
+        {/* Right Summary */}
         <aside className="shipping-summary">
           <div className="summary-card">
             <div className="summary-header">
@@ -71,22 +339,25 @@ const ShippingBilling = () => {
             </div>
             <div className="summary-row">
               <span>Subtotal</span>
-              <span>रु 0</span>
+              <span>{formatNpr(total)}</span>
+            </div>
+            <div className="summary-row">
+              <span>Items</span>
+              <span>{totalItems}</span>
             </div>
             <div className="summary-row">
               <span>Shipping (Free Shipping)</span>
-              <span>रु 0</span>
+              <span>{formatNpr(shippingCost)}</span>
             </div>
             <div className="summary-row">
               <span>Delivery Date (1-3 working Days)</span>
-              <span>रु 0</span>
+              <span>Estimated</span>
             </div>
             <div className="summary-divider" />
             <div className="summary-row total">
               <span>Grand total</span>
-              <span>रु 0</span>
+              <span>{formatNpr(grandTotal)}</span>
             </div>
-
             <div className="summary-coupon">
               <input type="text" placeholder="Enter discount code" />
               <button type="button">Apply now</button>
