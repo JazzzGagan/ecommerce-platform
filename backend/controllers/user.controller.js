@@ -46,7 +46,7 @@ export const createUser = async (req, res) => {
   }
 };
 
-export const getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {  
   const { id } = req.params;
 
   if (!isValidId(id)) {

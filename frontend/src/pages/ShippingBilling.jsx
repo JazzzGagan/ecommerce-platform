@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./ShippingBilling.css";
 import esewaLogo from "../assets/logoPayment/Esewa.png";
 import khaltiLogo from "../assets/logoPayment/khalti.png";
 import fonepayLogo from "../assets/logoPayment/fonepay.png";
 import { useCart } from "../context/CartContext.jsx";
+import API from "../api/api.js";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const ShippingBilling = () => {
   const { items, total } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [shipping, setShipping] = useState({
     firstName: "",
@@ -34,6 +38,7 @@ const ShippingBilling = () => {
 
   const [paymentMethod, setPaymentMethod] = useState("esewa");
   const [useSeparateBilling, setUseSeparateBilling] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const handleShippingChange = (e) => {
     setShipping({ ...shipping, [e.target.name]: e.target.value });
@@ -47,9 +52,150 @@ const ShippingBilling = () => {
   const grandTotal = total + shippingCost;
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const formatNpr = (amount) => `रु ${Number(amount || 0).toFixed(2)}`;
+  const query = new URLSearchParams(location.search);
+  const paymentStatus = query.get("payment");
+  const paymentMethodQuery = query.get("method");
+  const khaltiPidx = query.get("pidx");
+  const khaltiOrderId = query.get("orderId") || query.get("purchase_order_id");
+
+  useEffect(() => {
+    const verifyKhalti = async () => {
+      if (paymentMethodQuery !== "khalti" || !khaltiPidx || !khaltiOrderId)
+        return;
+      try {
+        await API.post("/orders/khalti/verify", {
+          orderId: khaltiOrderId,
+          pidx: khaltiPidx,
+        });
+      } catch (error) {
+        console.error("Khalti verification failed:", error);
+      }
+    };
+
+    verifyKhalti();
+  }, [paymentMethodQuery, khaltiPidx, khaltiOrderId]);
+
+  const isAddressComplete = (address) =>
+    Boolean(
+      address.firstName &&
+      address.lastName &&
+      address.phone &&
+      address.country &&
+      address.address &&
+      address.city,
+    );
+
+  const handleNext = async () => {
+    if (paymentMethod === "fonepay") {
+      navigate("/checkout");
+      return;
+    }
+
+    if (!isAddressComplete(shipping)) {
+      alert("Please complete all required shipping address fields.");
+      return;
+    }
+
+    if (useSeparateBilling && !isAddressComplete(billing)) {
+      alert("Please complete all required billing address fields.");
+      return;
+    }
+
+    if (!items.length || grandTotal <= 0) {
+      alert("Your cart is empty. Please add items before payment.");
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+
+      const normalizedItems = items
+        .map((item) => ({
+          productId:
+            item.productId || item._id || item.id || item.product?._id || "",
+          name: item.name || item.title || item.productName || "",
+          price: Number(item.price ?? item.unitPrice ?? 0),
+          quantity: Number(item.quantity ?? item.qty ?? 0),
+          image: item.image || item.thumbnail || item.images?.[0] || "",
+        }))
+        .filter((item) => item.productId && item.name && item.quantity > 0);
+
+      if (!normalizedItems.length) {
+        alert(
+          "Your cart data is invalid. Please refresh the cart and try again.",
+        );
+        return;
+      }
+
+      const payload = {
+        amount: grandTotal,
+        items: normalizedItems,
+        shippingAddress: shipping,
+        billingAddress: useSeparateBilling ? billing : shipping,
+        paymentMethod,
+      };
+
+      if (paymentMethod === "khalti") {
+        const response = await API.post("/orders/khalti/initiate", payload);
+        const { paymentUrl } = response.data;
+        if (!paymentUrl) {
+          throw new Error("Invalid Khalti payment response");
+        }
+        window.location.href = paymentUrl;
+        return;
+      }
+
+      const response = await API.post("/orders/esewa/initiate", payload);
+      const { paymentUrl, esewaConfig } = response.data;
+
+      if (!paymentUrl || !esewaConfig) {
+        throw new Error("Invalid eSewa payment session response");
+      }
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = paymentUrl;
+
+      Object.entries(esewaConfig).forEach(([key, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = String(value ?? "");
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (error) {
+      console.error("Failed to initiate payment:", error);
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to start payment. Please try again.";
+      alert(backendMessage);
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   return (
     <div className="shipping-page">
+      {paymentStatus === "success" && (
+        <div className="section-card" style={{ borderColor: "#86efac" }}>
+          <p style={{ color: "#166534", fontWeight: 600 }}>
+            Payment completed successfully.
+          </p>
+        </div>
+      )}
+      {paymentStatus === "failed" && (
+        <div className="section-card" style={{ borderColor: "#fca5a5" }}>
+          <p style={{ color: "#991b1b", fontWeight: 600 }}>
+            Payment failed or cancelled. Please try again.
+          </p>
+        </div>
+      )}
+
       {/* Steps */}
       <div className="shipping-steps">
         <div className="step-item active">
@@ -324,7 +470,14 @@ const ShippingBilling = () => {
 
           {/* Next Button */}
           <div className="section-actions">
-            <button className="primary-btn">Next</button>
+            <button
+              className="primary-btn"
+              type="button"
+              onClick={handleNext}
+              disabled={isProcessingPayment}
+            >
+              {isProcessingPayment ? "Processing..." : "Next"}
+            </button>
           </div>
         </section>
 
