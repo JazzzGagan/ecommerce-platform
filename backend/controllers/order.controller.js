@@ -87,6 +87,7 @@ const initiateEsewaPayment = async (req, res) => {
     }
 
     const transactionUuid = `${Date.now()}-${crypto.randomUUID()}`;
+    const esewaTransactionUuid = transactionUuid;
     const normalizedAmount = Number(amount).toFixed(2);
 
     const order = await Order.create({
@@ -101,6 +102,7 @@ const initiateEsewaPayment = async (req, res) => {
       paymentStatus: "pending",
       orderStatus: "pending",
       transactionUuid,
+      esewaTransactionUuid,
     });
 
     const signedFieldNames = "total_amount,transaction_uuid,product_code";
@@ -137,6 +139,11 @@ const initiateEsewaPayment = async (req, res) => {
     });
   } catch (error) {
     console.error("initiateEsewaPayment error:", error);
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        message: "Duplicate payment transaction detected. Please retry.",
+      });
+    }
     if (error?.name === "ValidationError") {
       return res.status(400).json({
         message: "Invalid order data",
@@ -194,6 +201,8 @@ const initiateKhaltiPayment = async (req, res) => {
       return res.status(400).json({ message: "Shipping address is required" });
     }
 
+    const pendingKhaltiPidx = `pending-${Date.now()}-${crypto.randomUUID()}`;
+
     const order = await Order.create({
       user: req.authUser._id,
       items: normalizedItems,
@@ -206,6 +215,7 @@ const initiateKhaltiPayment = async (req, res) => {
       paymentStatus: "pending",
       orderStatus: "pending",
       transactionUuid: `${Date.now()}-${crypto.randomUUID()}`,
+      khaltiPidx: pendingKhaltiPidx,
     });
 
     const khaltiPayload = {
@@ -248,6 +258,11 @@ const initiateKhaltiPayment = async (req, res) => {
     });
   } catch (error) {
     console.error("initiateKhaltiPayment error:", error);
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        message: "Duplicate payment transaction detected. Please retry.",
+      });
+    }
     if (error?.name === "ValidationError") {
       return res.status(400).json({
         message: "Invalid order data",
@@ -375,7 +390,7 @@ const handleEsewaSuccess = async (req, res) => {
         {
           _id: order._id,
           paymentStatus: { $ne: "paid" },
-          esewaTransactionUuid: null,
+          esewaTransactionUuid: order.transactionUuid,
         },
         {
           $set: {
@@ -498,7 +513,7 @@ const verifyKhaltiPayment = async (req, res) => {
       {
         _id: order._id,
         paymentStatus: { $ne: "paid" },
-        khaltiPidx: null,
+        khaltiPidx: { $ne: pidx },
       },
       {
         $set: {
