@@ -3,7 +3,7 @@ import { NavLink, Link } from "react-router-dom";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { useCart } from "../context/CartContext.jsx";
 import "./Header.css";
-import logo from "../assets/logos/Group 2.svg";
+//import logo from "../assets/logos/Group 2.svg";
 import API from "../api/api";
 
 const Header = () => {
@@ -16,6 +16,7 @@ const Header = () => {
   const [searchCategory, setSearchCategory] = useState("all");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const { items, itemCount, total, removeFromCart } = useCart();
+  console.log(categories)
 
   useEffect(() => {
     API.get(`/categories`)
@@ -58,7 +59,7 @@ const Header = () => {
       <div className="header-container">
         <Link to="/">
           <div className="header-logo">
-            <img src={logo} alt="Bites and B" />
+            {/* <img src={logo} alt="Bites and B" /> */}
           </div>
         </Link>
 

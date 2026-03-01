@@ -1,13 +1,22 @@
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 
 const seedAdmin = async () => {
   try {
+    console.log("MONGO_URI:", process.env.MONGO_URI);
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Database Connected");
 
-    // Read from environment variables
     const adminEmail = process.env.ADMIN_EMAIL || "admin@ecommerce.com";
     const adminPassword = process.env.ADMIN_PASSWORD || "Admin@123";
 

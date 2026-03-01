@@ -46,6 +46,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          
           <Route
             path="/account"
             element={
