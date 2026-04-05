@@ -1,5 +1,6 @@
 import {
   FaBoxOpen,
+  FaTag,
   FaListAlt,
   FaShoppingCart,
   FaUsers,
@@ -33,7 +34,11 @@ const menuData = [
     path: "/admin/users",
     icon: <FaUsers className="w-5 h-5 mr-3" />,
   },
-  
+  {
+    title: "Coupons",
+    path: "/admin/coupons",
+    icon: <FaTag className="w-5 h-5 mr-3" />,
+  },
 ];
 
 export default menuData;

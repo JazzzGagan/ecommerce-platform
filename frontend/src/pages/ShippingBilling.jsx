@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./ShippingBilling.css";
 import esewaLogo from "../assets/logoPayment/Esewa.png";
 import khaltiLogo from "../assets/logoPayment/khalti.png";
@@ -8,9 +8,10 @@ import API from "../api/api.js";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const ShippingBilling = () => {
-  const { items, total } = useCart();
+  const { items, total, clearCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+  const hasHandledSuccessfulPayment = useRef(false);
 
   const [shipping, setShipping] = useState({
     firstName: "",
@@ -39,6 +40,9 @@ const ShippingBilling = () => {
   const [paymentMethod, setPaymentMethod] = useState("esewa");
   const [useSeparateBilling, setUseSeparateBilling] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const handleShippingChange = (e) => {
     setShipping({ ...shipping, [e.target.name]: e.target.value });
@@ -49,7 +53,8 @@ const ShippingBilling = () => {
   };
 
   const shippingCost = total > 0 ? 0 : 0;
-  const grandTotal = total + shippingCost;
+  const discountAmount = Number(appliedCoupon?.discountAmount || 0);
+  const grandTotal = Math.max(total + shippingCost - discountAmount, 0);
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const formatNpr = (amount) => `रु ${Number(amount || 0).toFixed(2)}`;
   const query = new URLSearchParams(location.search);
@@ -67,13 +72,35 @@ const ShippingBilling = () => {
           orderId: khaltiOrderId,
           pidx: khaltiPidx,
         });
+
+        if (!hasHandledSuccessfulPayment.current) {
+          clearCart();
+          hasHandledSuccessfulPayment.current = true;
+        }
+
+        navigate(
+          `/shipping-billing-address?payment=success&method=khalti&orderId=${khaltiOrderId}`,
+          { replace: true },
+        );
       } catch (error) {
         console.error("Khalti verification failed:", error);
+        navigate(
+          `/shipping-billing-address?payment=failed&method=khalti&orderId=${khaltiOrderId || ""}`,
+          { replace: true },
+        );
       }
     };
 
     verifyKhalti();
-  }, [paymentMethodQuery, khaltiPidx, khaltiOrderId]);
+  }, [paymentMethodQuery, khaltiPidx, khaltiOrderId, clearCart, navigate]);
+
+  useEffect(() => {
+    if (paymentStatus !== "success") return;
+    if (hasHandledSuccessfulPayment.current) return;
+
+    clearCart();
+    hasHandledSuccessfulPayment.current = true;
+  }, [paymentStatus, clearCart]);
 
   const isAddressComplete = (address) =>
     Boolean(
@@ -133,6 +160,7 @@ const ShippingBilling = () => {
         shippingAddress: shipping,
         billingAddress: useSeparateBilling ? billing : shipping,
         paymentMethod,
+        couponCode: appliedCoupon?.code || "",
       };
 
       if (paymentMethod === "khalti") {
@@ -168,6 +196,12 @@ const ShippingBilling = () => {
       form.submit();
     } catch (error) {
       console.error("Failed to initiate payment:", error);
+
+      if (error?.response?.status === 401) {
+        alert("Session expired. Please log in again to continue checkout.");
+        return;
+      }
+
       const backendMessage =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
@@ -176,6 +210,43 @@ const ShippingBilling = () => {
       alert(backendMessage);
     } finally {
       setIsProcessingPayment(false);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    const normalizedCode = couponCode.trim().toUpperCase();
+
+    if (!normalizedCode) {
+      alert("Please enter a coupon code.");
+      return;
+    }
+
+    if (!items.length || total <= 0) {
+      alert("Add items to your cart before applying a coupon.");
+      return;
+    }
+
+    try {
+      setIsApplyingCoupon(true);
+      const response = await API.post("/coupons/validate", {
+        code: normalizedCode,
+        amount: total + shippingCost,
+      });
+
+      setAppliedCoupon(response.data);
+      setCouponCode(response.data?.code || normalizedCode);
+      alert(
+        `Coupon ${response.data?.code || normalizedCode} applied successfully.`,
+      );
+    } catch (error) {
+      setAppliedCoupon(null);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to apply coupon.";
+      alert(message);
+    } finally {
+      setIsApplyingCoupon(false);
     }
   };
 
@@ -511,10 +582,44 @@ const ShippingBilling = () => {
               <span>Grand total</span>
               <span>{formatNpr(grandTotal)}</span>
             </div>
+            {appliedCoupon && (
+              <div className="summary-row" style={{ color: "#166534" }}>
+                <span>
+                  Coupon ({appliedCoupon.code})
+                  {appliedCoupon.discountType === "percentage"
+                    ? ` - ${appliedCoupon.discountValue}%`
+                    : ""}
+                </span>
+                <span>- {formatNpr(appliedCoupon.discountAmount)}</span>
+              </div>
+            )}
             <div className="summary-coupon">
-              <input type="text" placeholder="Enter discount code" />
-              <button type="button">Apply now</button>
+              <input
+                type="text"
+                placeholder="Enter discount code"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={isApplyingCoupon}
+              >
+                {isApplyingCoupon ? "Applying..." : "Apply now"}
+              </button>
             </div>
+            {appliedCoupon && (
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => {
+                  setAppliedCoupon(null);
+                  setCouponCode("");
+                }}
+              >
+                Remove coupon
+              </button>
+            )}
           </div>
         </aside>
       </div>

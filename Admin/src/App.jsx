@@ -6,6 +6,8 @@ import Catagories from "./pages/Catagories.jsx";
 import UsersList from "./components/userList.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Orders from "./pages/Orders.jsx";
+import Coupons from "./pages/Coupons.jsx";
 
 function App() {
   return (
@@ -25,7 +27,9 @@ function App() {
           <Route index element={<DashBoard />} />
           <Route path="categories" element={<Catagories />} />
           <Route path="products" element={<Products />} />
+          <Route path="orders" element={<Orders />} />
           <Route path="users" element={<UsersList />} />
+          <Route path="coupons" element={<Coupons />} />
         </Route>
 
         <Route
