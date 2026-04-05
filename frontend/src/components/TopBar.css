@@ -1,6 +1,6 @@
 .top-bar {
   background: #1a1a1a;
-  color: #fff;
+  color: var(--color-bg-white);
   padding: 0.625rem 0;
   font-size: 0.875rem;
   font-weight: 400;
@@ -22,7 +22,7 @@
 }
 
 .help-text {
-  color: #999;
+  color: var(--color-bg-white);
 }
 
 .help-phone {
@@ -42,7 +42,7 @@
 }
 
 .contact-link {
-  color: #999;
+  color: var(--color-bg-white);
   text-decoration: none;
   transition: color 0.3s ease;
 }
@@ -59,7 +59,7 @@
 
 .account-link,
 .sign-in-link {
-  color: #999;
+  color: var(--color-bg-white);
   text-decoration: none;
   transition: color 0.3s ease;
 }

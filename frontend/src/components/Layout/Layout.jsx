@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import TopBar from "../TopBar";
 import Header from "../Header";
 import Footer from "../Footer";
-import Home from "../../pages/Home";
+
 
 const Layout = () => {
   return (

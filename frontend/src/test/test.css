@@ -64,4 +64,5 @@
 
 .dropdown li:hover {
   background: #f3f4f6;
+  color: var(--font);
 }

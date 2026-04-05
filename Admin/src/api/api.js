@@ -19,4 +19,21 @@ API.interceptors.request.use(
   },
 );
 
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    if (status === 401 || status === 403) {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUser");
+
+      if (window.location.pathname !== "/admin/login") {
+        window.location.href = "/admin/login?expired=1";
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 export default API;

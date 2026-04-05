@@ -47,15 +47,88 @@ const CategoryList = ({ categories, fetchCategories, onEdit }) => {
       }
     });
 
-    roots.sort((a, b) => a.name.localeCompare(b.name));
-    roots.forEach((root) =>
-      root.children.sort((a, b) => a.name.localeCompare(b.name)),
-    );
+    const sortTree = (nodes) => {
+      nodes.sort((a, b) => a.name.localeCompare(b.name));
+      nodes.forEach((node) => sortTree(node.children));
+    };
+
+    sortTree(roots);
 
     return roots;
   };
 
   const hierarchicalCategories = buildHierarchy(categories);
+
+  const getLevelLabel = (level) => {
+    if (level === 0) return "Parent";
+    if (level === 1) return "Child";
+    if (level === 2) return "Grandchild";
+    return `Level ${level + 1}`;
+  };
+
+  const getRowClasses = (level) => {
+    if (level === 0) return "border-b bg-slate-50 text-slate-900";
+    if (level === 1) return "border-b bg-slate-100 text-slate-800";
+    if (level === 2) return "border-b bg-slate-50 text-slate-700";
+    return "border-b bg-white text-slate-700";
+  };
+
+  const getBadgeClasses = (level) => {
+    if (level === 0) return "bg-slate-200 text-slate-700";
+    if (level === 1) return "bg-slate-100 text-slate-600";
+    if (level === 2) return "bg-slate-100 text-slate-500";
+    return "bg-slate-50 text-slate-500";
+  };
+
+  const renderCategoryRows = (category, level = 0) => {
+    const rows = [];
+
+    rows.push(
+      <tr key={`cat-${category._id}`} className={getRowClasses(level)}>
+        <td
+          className={`p-2 font-semibold ${
+            level === 0 ? "text-base" : level === 1 ? "text-sm" : "text-xs"
+          }`}
+          style={{ paddingLeft: `${12 + level * 18}px` }}
+        >
+          {category.name}
+          <span
+            className={`ml-2 text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${getBadgeClasses(
+              level,
+            )}`}
+          >
+            {getLevelLabel(level)}
+          </span>
+        </td>
+        <td className="p-2 text-xs text-slate-600">{category.slug}</td>
+        <td className="p-2">
+          <div className="flex items-center justify-center gap-2">
+            {onEdit && (
+              <button
+                onClick={() => onEdit(category)}
+                className="min-w-[64px] px-2.5 py-1 text-xs bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md text-white rounded hover:cursor-pointer hover:scale-105 transition duration-200"
+              >
+                Edit
+              </button>
+            )}
+            <button
+              disabled={loadingDeleteId === category._id}
+              onClick={() => handleDelete(category._id)}
+              className="min-w-[64px] px-2.5 py-1 text-xs bg-red-600 hover:bg-red-700 shadow-sm hover:shadow-md text-white rounded disabled:opacity-50 hover:cursor-pointer hover:scale-105 transition duration-200"
+            >
+              {loadingDeleteId === category._id ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        </td>
+      </tr>,
+    );
+
+    category.children.forEach((child) => {
+      rows.push(...renderCategoryRows(child, level + 1));
+    });
+
+    return rows;
+  };
 
   return (
     <div className="p-4 border rounded bg-white">
@@ -80,57 +153,7 @@ const CategoryList = ({ categories, fetchCategories, onEdit }) => {
               </td>
             </tr>
           ) : (
-            hierarchicalCategories.flatMap((parent) => [
-              <tr key={parent._id} className="border-b bg-indigo-50/60">
-                <td className="p-2 font-semibold text-indigo-900">
-                  {parent.name}
-                  {/* <span className="ml-2 text-xs font-semibold text-indigo-600">
-                    Parent
-                  </span> */}
-                </td>
-                <td className="p-2 text-indigo-700/80">{parent.slug}</td>
-                <td className="p-2 text-center space-x-2">
-                  {onEdit && (
-                    <button
-                      onClick={() => onEdit(parent)}
-                      className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md text-white rounded hover:cursor-pointer hover:scale-105 transition duration-200"
-                    >
-                      Edit
-                    </button>
-                  )}
-                  <button
-                    disabled={loadingDeleteId === parent._id}
-                    onClick={() => handleDelete(parent._id)}
-                    className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 shadow-sm hover:shadow-md text-white rounded disabled:opacity-50 hover:cursor-pointer hover:scale-105 transition duration-200"
-                  >
-                    {loadingDeleteId === parent._id ? "Deleting..." : "Delete"}
-                  </button>
-                </td>
-              </tr>,
-              ...parent.children.map((child) => (
-                <tr key={child._id} className="border-b hover:bg-slate-50">
-                  <td className="p-2 text-slate-700">{child.name}</td>
-                  <td className="p-2 text-slate-500">{child.slug}</td>
-                  <td className="p-2 text-center space-x-2">
-                    {onEdit && (
-                      <button
-                        onClick={() => onEdit(child)}
-                        className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md text-white rounded hover:cursor-pointer hover:scale-105 transition duration-200"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    <button
-                      disabled={loadingDeleteId === child._id}
-                      onClick={() => handleDelete(child._id)}
-                      className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 shadow-sm hover:shadow-md text-white rounded disabled:opacity-50 hover:cursor-pointer hover:scale-105 transition duration-200"
-                    >
-                      {loadingDeleteId === child._id ? "Deleting..." : "Delete"}
-                    </button>
-                  </td>
-                </tr>
-              )),
-            ])
+            hierarchicalCategories.flatMap((root) => renderCategoryRows(root))
           )}
         </tbody>
       </table>

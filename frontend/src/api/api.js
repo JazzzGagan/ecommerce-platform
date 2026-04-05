@@ -13,4 +13,31 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const message = String(error?.response?.data?.message || "").toLowerCase();
+    const isAuthError =
+      status === 401 &&
+      (message.includes("token") ||
+        message.includes("authorization") ||
+        message.includes("auth"));
+
+    if (isAuthError) {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+
+      if (window.location.pathname !== "/login") {
+        const redirectTo = encodeURIComponent(
+          `${window.location.pathname}${window.location.search}`,
+        );
+        window.location.href = `/login?expired=1&redirect=${redirectTo}`;
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 export default API;
